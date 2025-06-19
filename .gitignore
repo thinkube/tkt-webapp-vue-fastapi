@@ -38,9 +38,6 @@ build/
 # Ansible inventory - contains sensitive data
 ansible/inventory/
 
-# Generated files (not .jinja templates)
-k8s/*.yaml
-k8s/*.yml
 
 # Temporary files
 *.tmp
