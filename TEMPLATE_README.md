@@ -1,6 +1,10 @@
 # Thinkube Vue.js + FastAPI Template
 
-A full-stack web application template for Thinkube platform, featuring Vue.js frontend and FastAPI backend with Keycloak authentication.
+A full-stack web application template for the Thinkube platform, featuring Vue.js frontend and FastAPI backend with Keycloak authentication.
+
+## Overview
+
+This template is designed to be deployed through **Thinkube Control**, providing a complete application scaffold that integrates seamlessly with the Thinkube platform's services and infrastructure.
 
 ## Features
 
@@ -14,74 +18,85 @@ A full-stack web application template for Thinkube platform, featuring Vue.js fr
 - 🔄 **GitOps** workflow with ArgoCD
 - 📦 **PostgreSQL** database support (optional)
 - 🔑 **API token** management (optional)
+- 📊 **CI/CD monitoring** integration
 
-## Prerequisites
+## How to Use This Template
 
-- Python 3.11+
-- [Copier](https://copier.readthedocs.io/) 
-- Thinkube platform deployed
+This template is deployed through the Thinkube Control interface:
 
-## Using This Template
+1. **Login to Thinkube Control** at `https://control.yourdomain.com`
 
-1. Install Copier:
-   ```bash
-   pip install copier
-   ```
+2. **Navigate to Templates** section
 
-2. Create a new project from this template:
-   ```bash
-   copier copy https://github.com/thinkube-templates/tkt-webapp-vue-fastapi my-app
-   ```
+3. **Select "Vue.js + FastAPI"** template
 
-3. Answer the prompts to customize your project
+4. **Configure your application**:
+   - Project name (lowercase, hyphens allowed)
+   - GitHub organization
+   - Feature toggles (PostgreSQL, API tokens, CI/CD monitoring)
 
-4. Initialize git and push to GitHub:
-   ```bash
-   cd my-app
-   git init
-   git add .
-   git commit -m "Initial commit from template"
-   git remote add origin git@github.com:yourusername/my-app.git
-   git push -u origin main
-   ```
+5. **Deploy** - Thinkube Control will automatically:
+   - Create your GitHub repository
+   - Process the template with your configuration
+   - Set up the CI/CD pipeline with webhooks
+   - Deploy to Kubernetes via ArgoCD
+   - Configure Keycloak authentication
+   - Enable monitoring and logging
 
-5. Deploy using Thinkube Control:
-   - Login to Thinkube Control
-   - Navigate to Templates
-   - Deploy your application
+## What Gets Deployed
 
-## Template Options
+When you deploy this template, you get:
 
-- **project_name**: Your project identifier (lowercase, hyphens)
-- **project_title**: Human-readable project name
-- **use_postgresql**: Enable PostgreSQL database
-- **enable_api_tokens**: Add API token management
-- **enable_cicd_monitoring**: Integrate with CI/CD monitoring
+- **Frontend** accessible at `https://your-app-name.yourdomain.com`
+- **Backend API** at `https://your-app-name.yourdomain.com/api`
+- **API Documentation** at `https://your-app-name.yourdomain.com/api/v1/docs`
+- **Keycloak Client** configured for SSO
+- **PostgreSQL Database** (if enabled)
+- **CI/CD Pipeline** triggered on git push
+- **Monitoring Integration** with Thinkube Control
 
-## Project Structure
+## Template Structure
 
 ```
 ├── frontend/              # Vue.js application
 ├── backend/              # FastAPI application
-├── k8s/                  # Kubernetes manifests
+├── k8s/                  # Kubernetes manifests (Jinja2 templates)
 ├── ansible/              # Deployment automation
-│   ├── deploy.yaml      # Main deployment playbook
-│   └── roles/           # Shared Ansible roles
-└── copier.yml           # Template configuration
+│   └── deploy.yaml      # Deployment playbook (executed by Thinkube Control)
+└── copier.yml           # Template configuration (used by Thinkube Control)
 ```
 
-## Development
+## Development After Deployment
 
-See the generated README.md in your project for development instructions.
+Once deployed, your application repository will be available at:
+- **GitHub**: `https://github.com/your-org/your-app-name`
+- **Gitea**: `https://git.yourdomain.com/your-org-apps/your-app-name`
 
-## Contributing
+Development workflow:
+1. Clone from Gitea (for live development on vm-2)
+2. Make changes and push to Gitea
+3. CI/CD pipeline automatically builds and deploys
+4. Stable changes can be pushed back to GitHub
 
-1. Fork this template repository
-2. Create a feature branch
-3. Make your improvements
-4. Test with Copier
-5. Submit a pull request
+## Template Customization
 
-## License
+To customize this template for your organization:
 
-MIT License - see LICENSE file for details
+1. Fork this repository
+2. Modify the template files as needed
+3. Update `copier.yml` with your options
+4. Submit a PR or maintain your own version
+
+## Requirements
+
+- Thinkube platform deployed and configured
+- Thinkube Control with template deployment enabled
+- GitHub organization for source code
+- Valid domain with wildcard certificate
+
+## Support
+
+For issues with:
+- **This template**: Open an issue in this repository
+- **Thinkube Control**: Check the main Thinkube documentation
+- **Deployed applications**: Use Thinkube Control's monitoring features
