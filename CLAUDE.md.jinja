@@ -1,0 +1,141 @@
+# CLAUDE.md - {{ project_title }} Documentation
+
+This file provides guidance to Claude Code (claude.ai/code) and developers when working with the {{ project_title }} repository.
+
+## Project Overview
+
+{{ project_description }}
+
+Built using the Thinkube Vue.js + FastAPI template, this application provides:
+- Single sign-on (SSO) via Keycloak integration
+- Modern Vue.js frontend with FastAPI backend
+{% if use_postgresql -%}
+- PostgreSQL database integration
+{% endif -%}
+{% if enable_api_tokens -%}
+- API token management system
+{% endif -%}
+{% if enable_cicd_monitoring -%}
+- CI/CD pipeline monitoring
+{% endif -%}
+
+## Architecture
+
+### Frontend (Vue.js + DaisyUI)
+- **Location**: `/frontend`
+- **Technology**: Vue 3, Vue Router, Axios, Tailwind CSS, DaisyUI
+- **Purpose**: Provides a modern, responsive UI
+
+### Backend (FastAPI)
+- **Location**: `/backend`
+- **Technology**: FastAPI, Pydantic, Python {{ python_version }}
+- **Purpose**: RESTful API with automatic documentation
+
+### Kubernetes Manifests
+- **Location**: `/k8s`
+- **Templates**: Jinja2 templates (`.jinja` files) for multi-domain deployment
+- **Processed**: YAML files generated from templates during deployment
+
+## Development Workflow
+
+### Local Development
+
+1. **Frontend Development**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+2. **Backend Development**:
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   uvicorn app:app --reload
+   ```
+
+### Production Deployment
+
+This application follows the Thinkube GitOps workflow:
+
+1. **Initial Deployment**: Use Thinkube Control to deploy from template
+2. **Development**: Make changes in shared-code directory on vm-2
+3. **Testing**: Push to Gitea to trigger CI/CD pipeline
+4. **Production**: Stable changes pushed back to GitHub
+
+## Configuration
+
+### Required Environment Variables
+
+```env
+# Keycloak OAuth2
+KEYCLOAK_URL=https://auth.{{ domain_name }}
+KEYCLOAK_REALM=thinkube
+KEYCLOAK_CLIENT_ID={{ project_name }}
+KEYCLOAK_CLIENT_SECRET=<from-keycloak>
+
+# Application URLs
+FRONTEND_URL=https://{{ project_name }}.{{ domain_name }}
+BACKEND_CORS_ORIGINS='["https://{{ project_name }}.{{ domain_name }}"]'
+
+{% if use_postgresql -%}
+# PostgreSQL Database
+POSTGRES_HOST=postgresql-official.postgres.svc.cluster.local
+POSTGRES_PORT=5432
+POSTGRES_USER={{ admin_username }}
+POSTGRES_PASSWORD=<from-secret>
+POSTGRES_DB={{ project_name | replace('-', '_') }}
+{% endif %}
+```
+
+## Adding New Features
+
+### Adding a New API Endpoint
+
+1. Create a new router in `backend/app/api/`
+2. Add the router to `backend/app/api/router.py`
+3. Update OpenAPI documentation as needed
+
+### Adding a New Frontend View
+
+1. Create component in `frontend/src/views/`
+2. Add route in `frontend/src/router.js`
+3. Update navigation if needed
+
+### Adding Translations
+
+1. Update translation files in `frontend/src/locales/`
+2. Use `$t('key')` in templates or `useI18n()` in script
+
+## Testing
+
+### Backend Tests
+```bash
+cd backend
+pytest
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm run test
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Authentication fails**: Check Keycloak client configuration
+2. **CORS errors**: Verify BACKEND_CORS_ORIGINS includes frontend URL
+3. **Database connection**: Check PostgreSQL credentials and network access
+4. **Frontend blank screen**: Check browser console for API connection errors
+
+## Project Specific Notes
+
+Add any project-specific documentation here...
+
+---
+
+Generated from [Thinkube Template](https://github.com/thinkube-templates/tkt-webapp-vue-fastapi)

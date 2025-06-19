@@ -1,0 +1,612 @@
+# CI/CD Workflow for {{ project_title }}
+# This workflow is triggered by Gitea webhooks and builds container images
+# Tests must pass before builds proceed
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: build-{{ project_name }}-template
+  namespace: argo
+  labels:
+    app.kubernetes.io/name: {{ project_name }}
+    app.kubernetes.io/part-of: thinkube
+    app.kubernetes.io/component: ci-cd
+    thinkube.io/trigger: webhook
+    thinkube.io/build-type: container
+spec:
+  entrypoint: build-and-push
+  serviceAccountName: kaniko-builder
+  
+  # Parameters
+  arguments:
+    parameters:
+    - name: enable-monitoring
+      value: "{% if enable_cicd_monitoring %}true{% else %}false{% endif %}"
+  
+  # Run on master node where shared-code exists
+  nodeSelector:
+    kubernetes.io/hostname: {{ master_node_name }}
+  
+  # Use artifact repository for build artifacts
+  artifactRepositoryRef:
+    configMap: artifact-repositories
+    key: default-v1
+    
+  # Volumes
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: docker-config
+  - name: shared-code
+    hostPath:
+      path: /home/{{ system_username }}/shared-code/{{ project_name }}
+      type: Directory
+  - name: build-cache
+    hostPath:
+      path: /home/{{ system_username }}/.cache/thinkube-builds
+      type: DirectoryOrCreate
+  - name: cicd-scripts
+    configMap:
+      name: cicd-event-script
+      defaultMode: 0755
+  - name: cicd-pipeline-scripts
+    configMap:
+      name: cicd-pipeline-script
+      defaultMode: 0755
+
+  templates:
+  - name: build-and-push
+    dag:
+      tasks:
+      # Create pipeline record first (only if monitoring enabled)
+      - name: create-pipeline
+        template: create-pipeline-record
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        
+      - name: timestamp
+        template: generate-timestamp
+        
+      # Send workflow started event (only if monitoring enabled)
+      - name: workflow-started
+        template: send-event
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - create-pipeline
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "workflow_started"
+          - name: component
+            value: "workflow"
+          - name: status
+            value: "running"
+        
+      # TEST STAGES - Run directly on shared code
+      - name: test-backend
+        template: test-backend-with-events
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - create-pipeline
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+      
+      - name: test-backend-no-monitoring
+        template: test-backend
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+      
+      - name: test-frontend
+        template: test-frontend-with-events
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - create-pipeline
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+      
+      - name: test-frontend-no-monitoring
+        template: test-frontend
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+      
+      # BUILD STAGES - Only run if tests pass
+      - name: build-backend
+        template: build-backend-with-events
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - test-backend  # Must pass tests first
+        - timestamp
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{tasks.timestamp.outputs.parameters.timestamp}}{% endraw %}"
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+      
+      - name: build-backend-no-monitoring
+        template: build-backend
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+        dependencies:
+        - test-backend-no-monitoring  # Must pass tests first
+        - timestamp
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{tasks.timestamp.outputs.parameters.timestamp}}{% endraw %}"
+      
+      - name: build-frontend
+        template: build-frontend-with-events
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - test-frontend  # Must pass tests first
+        - timestamp
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{tasks.timestamp.outputs.parameters.timestamp}}{% endraw %}"
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+      
+      - name: build-frontend-no-monitoring
+        template: build-frontend
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+        dependencies:
+        - test-frontend-no-monitoring  # Must pass tests first
+        - timestamp
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{tasks.timestamp.outputs.parameters.timestamp}}{% endraw %}"
+      
+      # Send workflow completed event (only if monitoring enabled)
+      - name: workflow-completed
+        template: send-event
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        dependencies:
+        - build-backend
+        - build-frontend
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "workflow_completed"
+          - name: component
+            value: "workflow"
+          - name: status
+            value: "succeeded"
+  
+  # Test Backend Template
+  - name: test-backend
+    container:
+      image: {{ container_registry }}/library/python-base:3.11-slim
+      command: ["/bin/bash", "-c"]
+      env:
+      - name: POSTGRES_PASSWORD
+        value: "{{ admin_password }}"
+      - name: ADMIN_PASSWORD
+        value: "{{ admin_password }}"
+      - name: ADMIN_USERNAME
+        value: "{{ admin_username }}"
+      - name: PIP_CACHE_DIR
+        value: "/workspace/.cache/pip"
+      args:
+        - |
+          set -e
+          cd /workspace/backend
+          
+          # Create error capture file
+          ERROR_FILE=/tmp/test-error.txt
+          touch $ERROR_FILE
+          
+          # Function to capture errors
+          capture_error() {
+            echo "$1" > $ERROR_FILE
+            echo "$1" >&2
+            exit 1
+          }
+          
+          echo "Loading test environment variables..."
+          if [ -f .env.test ]; then
+            export $(cat .env.test | grep -v '^#' | xargs)
+          fi
+          
+          # Set PostgreSQL credentials from environment
+          export POSTGRES_PASSWORD="${ADMIN_PASSWORD}"
+          export POSTGRES_USER="${ADMIN_USERNAME}"
+          export DATABASE_USER="${ADMIN_USERNAME}"
+          
+          # Construct DATABASE_URL with the credentials
+          export DATABASE_URL="postgresql://${DATABASE_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
+          echo "Database URL configured for user ${DATABASE_USER} at host: ${DATABASE_HOST}"
+          
+          echo "Installing dependencies with cache..."
+          # Most dependencies are in base image, install only missing ones
+          pip install -r requirements.txt || true
+          
+          echo "Running linter checks..."
+          flake8 app/ --max-line-length=120 --exclude=__pycache__ || true
+          
+          echo "Checking code formatting..."
+          black --check app/ || true
+          
+          echo "Running unit tests with coverage..."
+          if [ -f run_tests.sh ]; then
+            chmod +x run_tests.sh
+            ./run_tests.sh || capture_error "Backend tests failed during run_tests.sh"
+          else
+            # Run pytest with coverage
+            pytest tests/ -v --cov=app --cov-report=term-missing || capture_error "Backend pytest tests failed"
+          fi
+          
+          echo "Backend tests completed successfully!"
+          echo "" > $ERROR_FILE  # Clear error file on success
+      volumeMounts:
+      - name: shared-code
+        mountPath: /workspace
+      - name: build-cache
+        mountPath: /workspace/.cache
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
+    outputs:
+      parameters:
+      - name: error-message
+        valueFrom:
+          path: /tmp/test-error.txt
+          default: ""
+  
+  # Test Frontend Template
+  - name: test-frontend
+    container:
+      image: {{ container_registry }}/library/node-base:18-alpine
+      command: ["/bin/sh", "-c"]
+      env:
+      - name: NPM_CONFIG_CACHE
+        value: "/workspace/.cache/npm"
+      args:
+        - |
+          set -e
+          cd /workspace/frontend
+          
+          # Create error capture file
+          ERROR_FILE=/tmp/test-error.txt
+          touch $ERROR_FILE
+          
+          # Function to capture errors
+          capture_error() {
+            echo "$1" > $ERROR_FILE
+            echo "$1" >&2
+            exit 1
+          }
+          
+          echo "Installing dependencies with cache..."
+          if [ -f package-lock.json ]; then
+            npm ci --cache /workspace/.cache/npm || capture_error "Failed to install frontend dependencies with npm ci"
+          else
+            npm install --cache /workspace/.cache/npm || capture_error "Failed to install frontend dependencies with npm install"
+          fi
+          
+          echo "Running linter..."
+          npm run lint || true
+          
+          echo "Running unit tests..."
+          if [ -f package.json ] && grep -q '"test"' package.json; then
+            npm run test || capture_error "Frontend tests failed"
+            echo "Tests passed successfully!"
+          else
+            capture_error "No test script found. Tests should be written before implementation."
+          fi
+          
+          echo "Checking test coverage..."
+          npm run test:coverage || true
+          
+          echo "Frontend tests completed!"
+          echo "" > $ERROR_FILE  # Clear error file on success
+      volumeMounts:
+      - name: shared-code
+        mountPath: /workspace
+      - name: build-cache
+        mountPath: /workspace/.cache
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
+    outputs:
+      parameters:
+      - name: error-message
+        valueFrom:
+          path: /tmp/test-error.txt
+          default: ""
+  
+  - name: generate-timestamp
+    container:
+      image: alpine:latest
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo -n $(date +%Y%m%dT%H%M%S) > /tmp/timestamp.txt
+    outputs:
+      parameters:
+      - name: timestamp
+        valueFrom:
+          path: /tmp/timestamp.txt
+  
+  # Build Backend Template
+  - name: build-backend
+    inputs:
+      parameters:
+      - name: image-tag
+    container:
+      image: {{ container_registry }}/library/kaniko-executor:latest
+      args:
+        - --context=/workspace/backend
+        - --dockerfile=/workspace/backend/Dockerfile
+        - --destination={{ registry_subdomain }}.{{ domain_name }}/thinkube/thinkube-control-backend:{% raw %}{{inputs.parameters.image-tag}}{% endraw %}
+        - --cache=true
+        - --cache-repo={{ registry_subdomain }}.{{ domain_name }}/thinkube/cache
+        - --cache-ttl=720h
+        - --snapshot-mode=redo
+        - --compressed-caching=false
+        - --cache-dir=/cache
+        - --use-new-run
+        - --cleanup
+      volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+      - name: shared-code
+        mountPath: /workspace
+      - name: build-cache
+        mountPath: /cache
+  
+  - name: build-frontend
+    inputs:
+      parameters:
+      - name: image-tag
+    container:
+      image: {{ container_registry }}/library/kaniko-executor:latest
+      args:
+        - --context=/workspace/frontend
+        - --dockerfile=/workspace/frontend/Dockerfile
+        - --destination={{ registry_subdomain }}.{{ domain_name }}/thinkube/thinkube-control-frontend:{% raw %}{{inputs.parameters.image-tag}}{% endraw %}
+        - --cache=true
+        - --cache-repo={{ registry_subdomain }}.{{ domain_name }}/thinkube/cache
+        - --cache-ttl=720h
+        - --snapshot-mode=redo
+        - --compressed-caching=false
+        - --cache-dir=/cache
+        - --use-new-run
+        - --cleanup
+      volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+      - name: shared-code
+        mountPath: /workspace
+      - name: build-cache
+        mountPath: /cache  
+  # Pipeline creation template
+  - name: create-pipeline-record
+    container:
+      image: alpine:latest
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          apk add --no-cache curl git
+          cd /workspace
+          
+          export APP_NAME="{{ project_name }}"
+          export CICD_API_URL="https://control.{{ domain_name }}"
+          export CICD_API_TOKEN="{{ cicd_api_token }}"
+          
+          /scripts/create-pipeline.sh
+      volumeMounts:
+      - name: shared-code
+        mountPath: /workspace
+      - name: cicd-pipeline-scripts
+        mountPath: /scripts
+    outputs:
+      parameters:
+      - name: pipeline-id
+        valueFrom:
+          path: /tmp/pipeline-id.txt
+  
+  # Event sending template
+  - name: send-event
+    inputs:
+      parameters:
+      - name: pipeline-id
+      - name: event-type
+      - name: component
+      - name: status
+      - name: error-message
+        value: ""
+      - name: details
+        value: "{}"
+    container:
+      image: alpine:latest
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          apk add --no-cache curl
+          
+          export CICD_API_URL="https://control.{{ domain_name }}"
+          export CICD_API_TOKEN="{{ cicd_api_token }}"
+          export PIPELINE_ID="{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          export EVENT_TYPE="{% raw %}{{inputs.parameters.event-type}}{% endraw %}"
+          export COMPONENT="{% raw %}{{inputs.parameters.component}}{% endraw %}"
+          export STATUS="{% raw %}{{inputs.parameters.status}}{% endraw %}"
+          export ERROR_MESSAGE="{% raw %}{{inputs.parameters.error-message}}{% endraw %}"
+          export DETAILS="{% raw %}{{inputs.parameters.details}}{% endraw %}"
+          
+          /scripts/send-event.sh
+      volumeMounts:
+      - name: cicd-scripts
+        mountPath: /scripts
+  
+  # Wrapper templates with events
+  - name: test-backend-with-events
+    inputs:
+      parameters:
+      - name: pipeline-id
+    steps:
+    - - name: start-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "test_started"
+          - name: component
+            value: "backend"
+          - name: status
+            value: "running"
+    - - name: run-tests
+        template: test-backend
+        continueOn:
+          failed: true
+    - - name: end-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "test_completed"
+          - name: component
+            value: "backend"
+          - name: status
+            value: "{% raw %}{{steps.run-tests.status}}{% endraw %}"
+          - name: error-message
+            value: "{% raw %}{{steps.run-tests.outputs.parameters.error-message}}{% endraw %}"
+  
+  - name: test-frontend-with-events
+    inputs:
+      parameters:
+      - name: pipeline-id
+    steps:
+    - - name: start-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "test_started"
+          - name: component
+            value: "frontend"
+          - name: status
+            value: "running"
+    - - name: run-tests
+        template: test-frontend
+        continueOn:
+          failed: true
+    - - name: end-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "test_completed"
+          - name: component
+            value: "frontend"
+          - name: status
+            value: "{% raw %}{{steps.run-tests.status}}{% endraw %}"
+          - name: error-message
+            value: "{% raw %}{{steps.run-tests.outputs.parameters.error-message}}{% endraw %}"
+  
+  - name: build-backend-with-events
+    inputs:
+      parameters:
+      - name: image-tag
+      - name: pipeline-id
+    steps:
+    - - name: start-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "build_started"
+          - name: component
+            value: "backend"
+          - name: status
+            value: "running"
+    - - name: run-build
+        template: build-backend
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"
+        continueOn:
+          failed: true
+    - - name: end-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "build_completed"
+          - name: component
+            value: "backend"
+          - name: status
+            value: "{% raw %}{{steps.run-build.status}}{% endraw %}"
+          - name: error-message
+            value: ""
+          - name: details
+            value: '{"image_tag": "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"}'
+  
+  - name: build-frontend-with-events
+    inputs:
+      parameters:
+      - name: image-tag
+      - name: pipeline-id
+    steps:
+    - - name: start-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "build_started"
+          - name: component
+            value: "frontend"
+          - name: status
+            value: "running"
+    - - name: run-build
+        template: build-frontend
+        arguments:
+          parameters:
+          - name: image-tag
+            value: "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"
+        continueOn:
+          failed: true
+    - - name: end-event
+        template: send-event
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "build_completed"
+          - name: component
+            value: "frontend"
+          - name: status
+            value: "{% raw %}{{steps.run-build.status}}{% endraw %}"
+          - name: error-message
+            value: ""
+          - name: details
+            value: '{"image_tag": "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"}'

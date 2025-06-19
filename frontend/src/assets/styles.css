@@ -1,0 +1,67 @@
+/* src/assets/styles.css */
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
+@theme {
+  /* Light theme color overrides */
+  --color-primary-light: #3B82F6;
+  --color-secondary-light: #6B7280;
+  --color-accent-light: #10B981;
+  --color-neutral-light: #1F2937;
+  --color-base-100-light: #F9FAFB;
+  
+  /* Dark theme color overrides */
+  --color-primary-dark: #3B82F6;
+  --color-secondary-dark: #6B7280;
+  --color-accent-dark: #10B981;
+  --color-neutral-dark: #1F2937;
+  --color-base-100-dark: #111827;
+}
+
+@layer components {
+  .dashboard-card {
+    @apply card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 h-full;
+  }
+  
+  .btn-nav {
+    @apply btn btn-ghost;
+  }
+  
+  .btn-icon {
+    @apply btn btn-circle btn-sm;
+  }
+  
+  .category-badge {
+    @apply badge;
+  }
+  
+  .category-badge-storage {
+    @apply badge-warning;
+  }
+  
+  .category-badge-monitoring {
+    @apply badge-success;
+  }
+  
+  .category-badge-devops {
+    @apply badge-info;
+  }
+  
+  .category-badge-ai {
+    @apply badge-secondary;
+  }
+  
+  .category-badge-database {
+    @apply badge-primary;
+  }
+  
+  .category-badge-development {
+    @apply badge-accent;
+  }
+  
+  .category-badge-documentation {
+    @apply badge-ghost;
+  }
+}

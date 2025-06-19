@@ -1,0 +1,233 @@
+---
+# ansible/deploy.yaml
+# Template deployment playbook for Vue.js + FastAPI application
+# This playbook is downloaded and executed by thinkube-control
+
+- name: Deploy {{ project_name }} application
+  hosts: microk8s_control_plane
+  gather_facts: true
+  
+  vars:
+    # Template variables (provided by Copier)
+    project_name: "{{ template_name }}"
+    k8s_namespace: "{{ deployment_namespace | default('app-' + template_name) }}"
+    
+    # GitHub configuration
+    github_repo_name: "{{ project_name }}"
+    github_org: "{{ github_username }}"
+    github_repo_url: "git@github.com:{{ github_org }}/{{ github_repo_name }}.git"
+    
+    # Domain configuration from inventory
+    app_host: "{{ project_name }}.{{ domain_name }}"
+    
+    # Container registry
+    container_registry: "registry.{{ domain_name }}"
+    backend_image_repo: "{{ container_registry }}/{{ github_org }}/{{ project_name }}-backend"
+    frontend_image_repo: "{{ container_registry }}/{{ github_org }}/{{ project_name }}-frontend"
+    
+    # Keycloak configuration
+    keycloak_app_client_id: "{{ project_name }}"
+    keycloak_admin_username: "{{ admin_username }}"
+    keycloak_admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+    
+    # GitOps configuration
+    gitea_org: "{{ github_org }}-apps"
+    gitea_repo_name: "{{ project_name }}"
+    argocd_namespace: "argocd"
+    
+    # Shared paths (provided by thinkube-control)
+    shared_code_path: "{{ ansible_roles_path | dirname | dirname }}"
+    local_repo_path: "{{ shared_code_path }}/{{ project_name }}"
+
+  pre_tasks:
+    - name: Verify required variables from thinkube-control
+      ansible.builtin.fail:
+        msg: "{{ item }} is not defined. This should be provided by thinkube-control."
+      when: vars[item] is not defined
+      loop:
+        - template_name
+        - template_url
+        - ansible_roles_path
+        - domain_name
+        - admin_username
+        - github_token
+
+    - name: Create application namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}"
+
+    - name: Get wildcard certificate from default namespace
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: v1
+        kind: Secret
+        namespace: default
+        name: thinkube-com-tls
+      register: wildcard_cert
+      failed_when: wildcard_cert.resources | length == 0
+
+    - name: Copy wildcard certificate to app namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ k8s_namespace }}-tls-secret"
+            namespace: "{{ k8s_namespace }}"
+          type: kubernetes.io/tls
+          data:
+            tls.crt: "{{ wildcard_cert.resources[0].data['tls.crt'] }}"
+            tls.key: "{{ wildcard_cert.resources[0].data['tls.key'] }}"
+
+  roles:
+    # Use roles from thinkube-control's ansible/roles directory
+    - role: "{{ ansible_roles_path }}/common/github_ssh_keys"
+      when: use_github | default(true)
+    
+    - role: "{{ ansible_roles_path }}/container_deployment/repo"
+      vars:
+        gitea_repo_name: "{{ app_name }}"
+        template_repository: "{{ template_url }}"
+        enable_cicd_monitoring: "{{ enable_cicd_monitoring | default(true) }}"
+    
+    - role: "{{ ansible_roles_path }}/keycloak/keycloak_client"
+      vars:
+        keycloak_client_id: "{{ keycloak_app_client_id }}"
+        keycloak_client_body:
+          clientId: "{{ keycloak_app_client_id }}"
+          enabled: true
+          rootUrl: "https://{{ app_host }}"
+          baseUrl: "https://{{ app_host }}"
+          redirectUris:
+            - "https://{{ app_host }}/*"
+          webOrigins:
+            - "https://{{ app_host }}"
+          publicClient: true
+          protocol: "openid-connect"
+
+  tasks:
+    - name: Clone template repository
+      ansible.builtin.git:
+        repo: "{{ template_url }}"
+        dest: "{{ local_repo_path }}"
+        version: main
+        force: yes
+
+    - name: Process template with Copier
+      ansible.builtin.shell: |
+        cd {{ local_repo_path }}
+        copier copy . . --force \
+          --data project_name="{{ project_name }}" \
+          --data github_username="{{ github_org }}" \
+          --data domain_name="{{ domain_name }}" \
+          --data k8s_namespace="{{ k8s_namespace }}" \
+          --data enable_cicd_monitoring="{{ enable_cicd_monitoring | default(true) }}" \
+          --data enable_api_tokens="{{ enable_api_tokens | default(true) }}" \
+          --data use_postgresql="{{ use_postgresql | default(true) }}" \
+          --data author_name="{{ author_name | default('Template User') }}" \
+          --data author_email="{{ author_email | default('user@' + domain_name) }}"
+      args:
+        executable: /bin/bash
+
+    - name: Setup Docker/Kaniko configuration
+      ansible.builtin.include_role:
+        name: "{{ ansible_roles_path }}/container_deployment/docker_kaniko"
+
+    # Get Gitea token for repository operations
+    - name: Get Gitea admin token from gitea namespace
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: v1
+        kind: Secret
+        namespace: gitea
+        name: gitea-admin-token
+      register: gitea_token_secret
+
+    - name: Create Gitea repository
+      ansible.builtin.include_tasks: "{{ ansible_roles_path }}/../../../tasks/create_gitea_repo.yaml"
+      vars:
+        gitea_repo_description: "{{ project_description | default(project_name + ' deployment') }}"
+        gitea_hostname: "git.{{ domain_name }}"
+
+    # Deploy the CI/CD WorkflowTemplate before configuring webhook
+    - name: Deploy CI/CD WorkflowTemplate for webhook triggers
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        src: "{{ local_repo_path }}/k8s/build-workflow.yaml"
+
+    # Configure webhook BEFORE pushing (so it triggers on first push)
+    - name: Configure Gitea webhook
+      ansible.builtin.include_role:
+        name: "{{ ansible_roles_path }}/gitea/configure_webhook"
+      vars:
+        gitea_token: "{{ gitea_token_secret.resources[0].data.token | b64decode }}"
+
+    # Setup git hooks for automatic template processing
+    - name: Setup git hooks in local repository
+      ansible.builtin.include_tasks: "{{ ansible_roles_path }}/../../../tasks/setup_git_hooks.yaml"
+
+    # Push to Gitea - this will trigger the webhook!
+    - name: Push to Gitea
+      ansible.builtin.include_role:
+        name: "{{ ansible_roles_path }}/container_deployment/git_push"
+      vars:
+        gitea_hostname: "git.{{ domain_name }}"
+        gitea_token: "{{ gitea_token_secret.resources[0].data.token | b64decode }}"
+
+    # Configure CI/CD monitoring (template apps should have this!)
+    - name: Configure CI/CD monitoring webhook
+      when: enable_cicd_monitoring | default(true)
+      block:
+        - name: Get thinkube-control API token
+          kubernetes.core.k8s_info:
+            kubeconfig: "{{ kubeconfig }}"
+            api_version: v1
+            kind: Secret
+            namespace: thinkube-control
+            name: cicd-monitoring-token
+          register: monitoring_token
+          failed_when: false
+
+        - name: Configure repository for CI/CD monitoring
+          ansible.builtin.uri:
+            url: "https://control.{{ domain_name }}/api/v1/cicd/repositories"
+            method: POST
+            headers:
+              Authorization: "Bearer {{ monitoring_token.resources[0].data.token | b64decode }}"
+              Content-Type: "application/json"
+            body_json:
+              repository_url: "https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}"
+              repository_name: "{{ project_name }}"
+              active: true
+            validate_certs: false
+          when: monitoring_token.resources | length > 0
+
+    - name: Deploy with ArgoCD
+      ansible.builtin.include_role:
+        name: "{{ ansible_roles_path }}/container_deployment/argocd"
+      vars:
+        app_name: "{{ project_name }}"
+        argocd_repo_url: "https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}.git"
+        use_github: false
+
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg: |
+          ✅ Application deployed successfully!
+          
+          Application URL: https://{{ app_host }}
+          GitHub Repo: {{ github_repo_url }}
+          Gitea Repo: https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}
+          
+          Namespace: {{ k8s_namespace }}
+          Backend Image: {{ backend_image_repo }}
+          Frontend Image: {{ frontend_image_repo }}

@@ -1,0 +1,103 @@
+_templates_suffix: .jinja
+_envops:
+  block_start_string: "{%"
+  block_end_string: "%}"
+  variable_start_string: "{{"
+  variable_end_string: "}}"
+  comment_start_string: "{#"
+  comment_end_string: "#}"
+  keep_trailing_newline: true
+
+# Basic project information
+project_name:
+  type: str
+  help: What is your project name? (lowercase, hyphens allowed)
+  placeholder: my-awesome-app
+  validator: "{% if not (project_name | regex_search('^[a-z][a-z0-9-]*$')) %}Project name must start with a letter and contain only lowercase letters, numbers, and hyphens{% endif %}"
+
+project_title:
+  type: str
+  help: What is your project title? (human-readable)
+  default: "{{ project_name | title | replace('-', ' ') }}"
+
+project_description:
+  type: str
+  help: Brief description of your project
+  default: "A Vue.js and FastAPI application"
+
+# Author information
+author_name:
+  type: str
+  help: Your name
+  placeholder: John Doe
+
+author_email:
+  type: str
+  help: Your email
+  placeholder: john@example.com
+
+# GitHub configuration
+github_username:
+  type: str
+  help: Your GitHub username or organization
+  placeholder: myusername
+
+# Domain configuration (for production deployment)
+domain_name:
+  type: str
+  help: Domain name for production deployment
+  placeholder: example.com
+
+# Kubernetes namespace
+k8s_namespace:
+  type: str
+  help: Kubernetes namespace for deployment
+  default: "{{ project_name }}"
+
+# Database configuration
+use_postgresql:
+  type: bool
+  help: Will this application use PostgreSQL?
+  default: true
+
+# Feature flags
+enable_cicd_monitoring:
+  type: bool
+  help: Enable CI/CD monitoring integration?
+  default: true
+
+enable_api_tokens:
+  type: bool
+  help: Enable API token management?
+  default: true
+
+# Python configuration
+python_version:
+  type: str
+  help: Python version
+  default: "3.11"
+  choices:
+    - "3.11"
+    - "3.12"
+
+# Node configuration  
+node_version:
+  type: str
+  help: Node.js version
+  default: "20"
+  choices:
+    - "18"
+    - "20"
+
+# Copy control
+_skip_if_exists:
+  - "ansible/inventory/"
+
+_tasks:
+  - "echo '✅ Template created successfully!'"
+  - "echo '📝 Next steps:'"
+  - "echo '  1. cd {{ project_name }}'"
+  - "echo '  2. git init'"
+  - "echo '  3. Review and customize the generated files'"
+  - "echo '  4. Create a GitHub repository: {{ github_username }}/{{ project_name }}'"
+  - "echo '  5. Deploy using: thinkube-control deploy {{ project_name }}'"

@@ -1,0 +1,82 @@
+// src/router.js
+import { createRouter, createWebHistory } from 'vue-router';
+import { isAuthenticated, redirectToLogin } from './services/auth';
+
+// Import layouts
+import MainLayout from './layouts/MainLayout.vue';
+
+// Import views (lazy loading for better performance)
+const Home = () => import('./views/Home.vue');
+const NotFound = () => import('./views/NotFound.vue');
+const AuthCallback = () => import('./views/AuthCallback.vue');
+{% if enable_api_tokens -%}
+const ApiTokens = () => import('./views/ApiTokens.vue');
+{% endif %}
+
+// Define routes
+const routes = [
+  {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: AuthCallback,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/',
+    component: MainLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: Home
+      },
+      {% if enable_api_tokens -%}
+      {
+        path: 'tokens',
+        name: 'api-tokens',
+        component: ApiTokens
+      },
+      {% endif -%}
+    ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFound,
+    meta: { requiresAuth: false }
+  }
+];
+
+// Create router
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+});
+
+// Navigation guard to check authentication
+router.beforeEach(async (to, from, next) => {
+  console.log('Navigating to:', to.path, 'Requires auth:', to.meta.requiresAuth);
+  
+  // Skip auth check for routes that don't require it
+  if (to.meta.requiresAuth === false) {
+    next();
+    return;
+  }
+  
+  // Check if user is authenticated
+  const authenticated = isAuthenticated();
+  console.log('Is authenticated:', authenticated);
+  
+  if (!authenticated) {
+    console.log('Not authenticated, redirecting to login');
+    // Redirect to Keycloak login
+    await redirectToLogin();
+    return;
+  }
+  
+  console.log('Authenticated, proceeding to route');
+  next();
+});
+
+export default router;

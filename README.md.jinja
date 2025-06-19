@@ -1,0 +1,143 @@
+# {{ project_title }}
+
+{{ project_description }}
+
+## Overview
+
+This is a full-stack web application built with:
+- **Frontend**: Vue.js 3 with Tailwind CSS and DaisyUI
+- **Backend**: FastAPI with async support
+- **Authentication**: Keycloak integration via OAuth2
+{% if use_postgresql -%}
+- **Database**: PostgreSQL
+{% endif -%}
+- **Deployment**: Kubernetes with ArgoCD
+
+## Features
+
+- 🔐 Single Sign-On (SSO) with Keycloak
+- 🌐 Internationalization (i18n) support
+- 🎨 Modern UI with DaisyUI components
+- 🚀 Fast API backend with automatic docs
+{% if enable_api_tokens -%}
+- 🔑 API token management
+{% endif -%}
+{% if enable_cicd_monitoring -%}
+- 📊 CI/CD pipeline monitoring
+{% endif -%}
+- 🐳 Containerized with Docker
+- ☸️ Kubernetes-ready with GitOps
+
+## Project Structure
+
+```
+{{ project_name }}/
+├── frontend/               # Vue.js frontend application
+│   ├── src/
+│   │   ├── components/    # Reusable Vue components
+│   │   ├── views/        # Page components
+│   │   ├── services/     # API service layer
+│   │   └── locales/      # Translation files
+│   └── Dockerfile
+├── backend/               # FastAPI backend application
+│   ├── app/
+│   │   ├── api/         # API endpoints
+│   │   ├── core/        # Core configuration
+│   │   └── models/      # Data models
+│   └── Dockerfile
+├── k8s/                  # Kubernetes manifests
+│   └── *.yaml.jinja     # Jinja2 templates
+└── ansible/             # Deployment automation
+    └── deploy.yaml      # Deployment playbook
+```
+
+## Development
+
+### Prerequisites
+
+- Python {{ python_version }}
+- Node.js {{ node_version }}
+- Docker
+- Kubernetes cluster (for deployment)
+
+### Frontend Development
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend will be available at http://localhost:5173
+
+### Backend Development
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+API will be available at http://localhost:8000
+API docs at http://localhost:8000/api/v1/docs
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the backend directory:
+
+```env
+# Keycloak Configuration
+KEYCLOAK_URL=https://auth.{{ domain_name }}
+KEYCLOAK_REALM=thinkube
+KEYCLOAK_CLIENT_ID={{ project_name }}
+KEYCLOAK_CLIENT_SECRET=your-client-secret
+
+# Frontend URL
+FRONTEND_URL=https://{{ project_name }}.{{ domain_name }}
+
+{% if use_postgresql -%}
+# Database Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-password
+POSTGRES_DB={{ project_name | replace('-', '_') }}
+{% endif %}
+```
+
+## Deployment
+
+This application is designed to be deployed using Thinkube Control:
+
+1. Ensure your application is pushed to GitHub
+2. Use Thinkube Control to deploy:
+   ```
+   thinkube-control deploy {{ project_name }}
+   ```
+
+The deployment process will:
+- Build container images
+- Push to Harbor registry
+- Deploy to Kubernetes via ArgoCD
+- Configure Keycloak integration
+- Set up HTTPS ingress
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
+
+## License
+
+[Your License Here]
+
+---
+
+Generated with [Thinkube Template](https://github.com/thinkube-templates/tkt-webapp-vue-fastapi)

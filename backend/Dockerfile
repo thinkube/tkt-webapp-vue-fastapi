@@ -1,0 +1,33 @@
+# Use optimized base image with common dependencies from library
+FROM registry.thinkube.com/library/python-base:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements and install only additional dependencies not in base
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt || true
+
+# Install ansible and required system packages for template deployment
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    openssh-client \
+    sshpass \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ansible via pip to get latest version
+RUN pip install --no-cache-dir ansible
+
+# Copy application code
+COPY app /app/app
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Command to run the application
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
