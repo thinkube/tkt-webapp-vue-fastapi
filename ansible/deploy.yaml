@@ -8,36 +8,34 @@
   gather_facts: true
   
   vars:
-    # Template variables (provided by Copier)
+    # Template variables (provided by template deployment)
     project_name: "{{ template_name }}"
     k8s_namespace: "{{ deployment_namespace | default('app-' + template_name) }}"
-    
-    # GitHub configuration
-    github_repo_name: "{{ project_name }}"
-    github_org: "{{ github_username }}"
-    github_repo_url: "git@github.com:{{ github_org }}/{{ github_repo_name }}.git"
+    app_name: "{{ project_name }}"
     
     # Domain configuration from inventory
     app_host: "{{ project_name }}.{{ domain_name }}"
     
-    # Container registry
+    # Container registry (using thinkube project in Harbor)
     container_registry: "registry.{{ domain_name }}"
-    backend_image_repo: "{{ container_registry }}/{{ github_org }}/{{ project_name }}-backend"
-    frontend_image_repo: "{{ container_registry }}/{{ github_org }}/{{ project_name }}-frontend"
+    backend_image_repo: "{{ container_registry }}/thinkube/{{ project_name }}-backend"
+    frontend_image_repo: "{{ container_registry }}/thinkube/{{ project_name }}-frontend"
     
     # Keycloak configuration
     keycloak_app_client_id: "{{ project_name }}"
     keycloak_admin_username: "{{ admin_username }}"
     keycloak_admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     
-    # GitOps configuration
-    gitea_org: "{{ github_org }}-apps"
+    # GitOps configuration (consistent with thinkube-control)
+    use_github: false
+    gitea_org: "thinkube-deployments"
     gitea_repo_name: "{{ project_name }}"
     argocd_namespace: "argocd"
     
     # Shared paths (provided by thinkube-control)
     shared_code_path: "{{ ansible_roles_path | dirname | dirname }}"
     local_repo_path: "{{ shared_code_path }}/{{ project_name }}"
+    code_source_path: "{{ shared_code_path }}"
 
   pre_tasks:
     - name: Verify required variables from thinkube-control
@@ -89,14 +87,12 @@
 
   roles:
     # Use roles from thinkube-control's ansible/roles directory
-    - role: "{{ ansible_roles_path }}/common/github_ssh_keys"
-      when: use_github | default(true)
-    
     - role: "{{ ansible_roles_path }}/container_deployment/repo"
       vars:
         gitea_repo_name: "{{ app_name }}"
         template_repository: "{{ template_url }}"
         enable_cicd_monitoring: "{{ enable_cicd_monitoring | default(true) }}"
+        use_github: false
     
     - role: "{{ ansible_roles_path }}/keycloak/keycloak_client"
       vars:
