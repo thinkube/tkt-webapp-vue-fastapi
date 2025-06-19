@@ -4,12 +4,9 @@ A full-stack web application template for the [Thinkube](https://github.com/thin
 
 ## 🚀 Quick Start
 
-This template is deployed through **Thinkube Control**:
+[![Deploy to Thinkube](https://img.shields.io/badge/Deploy%20to-Thinkube-blue?style=for-the-badge&logo=kubernetes)](https://thinkube.github.io/tkt-webapp-vue-fastapi/deploy.html)
 
-1. Login to your Thinkube Control instance
-2. Navigate to **Templates**
-3. Select **Vue.js + FastAPI**
-4. Configure and deploy
+Click the button above to deploy this template to your Thinkube instance!
 
 ## ✨ Features
 

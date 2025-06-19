@@ -1,0 +1,4 @@
+# GitHub Pages configuration
+theme: none
+title: Vue.js + FastAPI Template for Thinkube
+description: Deploy this template to your Thinkube instance
