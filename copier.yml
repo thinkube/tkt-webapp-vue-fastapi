@@ -92,6 +92,7 @@ _skip_if_exists:
 _exclude:
   - "TEMPLATE_README.md"
   - "README.md"  # Will be replaced by README.md.jinja
+  - ".git"  # Exclude git repository to prevent corruption
 
 _tasks:
   - "echo '✅ Template created successfully!'"
