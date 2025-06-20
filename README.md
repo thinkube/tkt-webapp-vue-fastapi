@@ -84,7 +84,6 @@ When deploying through Thinkube Control:
 |--------|-------------|---------|
 | `project_name` | Application identifier (lowercase) | - |
 | `project_title` | Human-readable name | - |
-| `github_username` | GitHub org/username | - |
 | `use_postgresql` | Enable PostgreSQL database | `true` |
 | `enable_api_tokens` | Add API token management | `true` |
 | `enable_cicd_monitoring` | Enable CI/CD monitoring | `true` |

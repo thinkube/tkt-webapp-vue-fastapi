@@ -89,7 +89,9 @@
     - role: container_deployment/repo
       vars:
         gitea_repo_name: "{{ app_name }}"
-        template_repository: "{{ template_url }}"
+        template_url: "{{ template_url }}"
+        author_name: "{{ author_name }}"
+        author_email: "{{ author_email }}"
         enable_cicd_monitoring: "{{ enable_cicd_monitoring | default(true) }}"
         use_github: false
     
@@ -109,29 +111,6 @@
           protocol: "openid-connect"
 
   tasks:
-    - name: Clone template repository
-      ansible.builtin.git:
-        repo: "{{ template_url }}"
-        dest: "{{ local_repo_path }}"
-        version: main
-        force: yes
-
-    - name: Process template with Copier
-      ansible.builtin.shell: |
-        cd {{ local_repo_path }}
-        copier copy . . --force \
-          --data project_name="{{ project_name }}" \
-          --data github_username="{{ github_org }}" \
-          --data domain_name="{{ domain_name }}" \
-          --data k8s_namespace="{{ k8s_namespace }}" \
-          --data enable_cicd_monitoring="{{ enable_cicd_monitoring | default(true) }}" \
-          --data enable_api_tokens="{{ enable_api_tokens | default(true) }}" \
-          --data use_postgresql="{{ use_postgresql | default(true) }}" \
-          --data author_name="{{ author_name | default('Template User') }}" \
-          --data author_email="{{ author_email | default('user@' + domain_name) }}"
-      args:
-        executable: /bin/bash
-
     - name: Setup Docker/Kaniko configuration
       ansible.builtin.include_role:
         name: container_deployment/docker_kaniko

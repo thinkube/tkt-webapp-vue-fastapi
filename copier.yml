@@ -36,11 +36,6 @@ author_email:
   help: Your email
   placeholder: john@example.com
 
-# GitHub configuration
-github_username:
-  type: str
-  help: Your GitHub username or organization
-  placeholder: myusername
 
 # Domain configuration (for production deployment)
 domain_name:
