@@ -111,26 +111,11 @@
           protocol: "openid-connect"
 
   tasks:
-    # Set Harbor credentials from environment (for container execution)
-    - name: Set Harbor robot credentials from environment
-      ansible.builtin.set_fact:
-        harbor_robot_user: "robot$thinkube"
-        harbor_robot_token: "{{ lookup('env', 'HARBOR_ROBOT_TOKEN') }}"
-    
-    - name: Verify Harbor robot token is available
-      ansible.builtin.fail:
-        msg: "HARBOR_ROBOT_TOKEN environment variable is not set"
-      when: harbor_robot_token == ""
-      
     # Set ArgoCD credentials from environment (for container execution)
     - name: Set ArgoCD credentials from environment
       ansible.builtin.set_fact:
         argocd_password: "{{ lookup('env', 'ARGOCD_PASSWORD') }}"
         argocd_token: "{{ lookup('env', 'ARGOCD_DEPLOYMENT_SECRET') }}"
-        
-    - name: Setup Docker/Kaniko configuration
-      ansible.builtin.include_role:
-        name: container_deployment/docker_kaniko
 
     # Get Gitea token for repository operations
     - name: Get Gitea admin token from gitea namespace
