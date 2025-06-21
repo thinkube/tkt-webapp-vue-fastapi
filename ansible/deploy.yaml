@@ -198,7 +198,8 @@
             headers:
               Authorization: "Bearer {{ monitoring_token.resources[0].data.token | b64decode }}"
               Content-Type: "application/json"
-            body_json:
+            body_format: json
+            body:
               repository_url: "https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}"
               repository_name: "{{ project_name }}"
               active: true
