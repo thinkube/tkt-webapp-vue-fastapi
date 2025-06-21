@@ -151,12 +151,27 @@
       ansible.builtin.set_fact:
         cicd_api_token: "{{ cicd_monitoring_token.resources[0].data.token | b64decode }}"
 
+    # Create CI/CD token secret in argo namespace for workflows
+    - name: Create CI/CD monitoring token secret in argo namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ project_name }}-cicd-token"
+            namespace: argo
+          type: Opaque
+          stringData:
+            token: "{{ cicd_api_token }}"
+
     # Deploy the CI/CD WorkflowTemplate before configuring webhook
     - name: Deploy CI/CD WorkflowTemplate for webhook triggers
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig }}"
         state: present
-        definition: "{{ lookup('template', local_repo_path + '/k8s/build-workflow.yaml.jinja') | from_yaml }}"
+        src: "{{ local_repo_path }}/k8s/build-workflow.yaml"
 
     # Configure webhook BEFORE pushing (so it triggers on first push)
     - name: Configure Gitea webhook

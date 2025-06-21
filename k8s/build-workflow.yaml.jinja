@@ -52,6 +52,9 @@ spec:
     configMap:
       name: cicd-pipeline-script
       defaultMode: 0755
+  - name: cicd-token
+    secret:
+      secretName: {{ project_name }}-cicd-token
 
   templates:
   - name: build-and-push
@@ -405,7 +408,7 @@ spec:
           
           export APP_NAME="{{ project_name }}"
           export CICD_API_URL="https://control.{{ domain_name }}"
-          export CICD_API_TOKEN="{{ cicd_api_token }}"
+          export CICD_API_TOKEN="$(cat /var/run/secrets/cicd-token/token)"
           
           /scripts/create-pipeline.sh
       volumeMounts:
@@ -413,6 +416,9 @@ spec:
         mountPath: /workspace
       - name: cicd-pipeline-scripts
         mountPath: /scripts
+      - name: cicd-token
+        mountPath: /var/run/secrets/cicd-token
+        readOnly: true
     outputs:
       parameters:
       - name: pipeline-id
@@ -439,7 +445,7 @@ spec:
           apk add --no-cache curl
           
           export CICD_API_URL="https://control.{{ domain_name }}"
-          export CICD_API_TOKEN="{{ cicd_api_token }}"
+          export CICD_API_TOKEN="$(cat /var/run/secrets/cicd-token/token)"
           export PIPELINE_ID="{% raw %}{{inputs.parameters.pipeline-id}}{% endraw %}"
           export EVENT_TYPE="{% raw %}{{inputs.parameters.event-type}}{% endraw %}"
           export COMPONENT="{% raw %}{{inputs.parameters.component}}{% endraw %}"
@@ -451,6 +457,9 @@ spec:
       volumeMounts:
       - name: cicd-scripts
         mountPath: /scripts
+      - name: cicd-token
+        mountPath: /var/run/secrets/cicd-token
+        readOnly: true
   
   # Wrapper templates with events
   - name: test-backend-with-events
