@@ -43,8 +43,8 @@ onMounted(async () => {
     message.value = t('auth.loginSuccess')
     // Small delay to ensure token is properly stored
     setTimeout(() => {
-      // Redirect to dashboard after successful authentication
-      router.push('/dashboard')
+      // Redirect to home after successful authentication
+      router.push('/')
     }, 100)
   } catch (error) {
     console.error('Auth callback failed:', error)

@@ -14,8 +14,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/auth/callback', component: AuthCallback },
-    { path: '/', component: { template: '<div>Home</div>' } },
-    { path: '/dashboard', component: { template: '<div>Dashboard</div>' } }
+    { path: '/', component: { template: '<div>Home</div>' } }
   ]
 })
 
@@ -61,7 +60,7 @@ describe('AuthCallback.vue', () => {
     expect(authService.handleAuthCallback).toHaveBeenCalledWith('test-code')
   })
 
-  it('redirects to dashboard on successful callback', async () => {
+  it('redirects to home on successful callback', async () => {
     vi.useFakeTimers()
     delete window.location
     window.location = { search: '?code=test-code' }
@@ -85,7 +84,7 @@ describe('AuthCallback.vue', () => {
     // Component uses setTimeout with 100ms delay
     vi.advanceTimersByTime(100)
     
-    expect(push).toHaveBeenCalledWith('/dashboard')
+    expect(push).toHaveBeenCalledWith('/')
     
     vi.useRealTimers()
   })
