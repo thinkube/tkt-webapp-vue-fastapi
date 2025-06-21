@@ -117,7 +117,7 @@ spec:
       # BUILD STAGES - Only run if tests pass
       - name: build-backend
         template: build-backend-with-events
-        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True' && {% raw %}{{tasks.test-backend.status}}{% endraw %} == 'Succeeded'"
         dependencies:
         - test-backend  # Must pass tests first
         - timestamp
@@ -130,7 +130,7 @@ spec:
       
       - name: build-backend-no-monitoring
         template: build-backend
-        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False' && {% raw %}{{tasks.test-backend-no-monitoring.status}}{% endraw %} == 'Succeeded'"
         dependencies:
         - test-backend-no-monitoring  # Must pass tests first
         - timestamp
@@ -141,7 +141,7 @@ spec:
       
       - name: build-frontend
         template: build-frontend-with-events
-        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True' && {% raw %}{{tasks.test-frontend.status}}{% endraw %} == 'Succeeded'"
         dependencies:
         - test-frontend  # Must pass tests first
         - timestamp
@@ -154,7 +154,7 @@ spec:
       
       - name: build-frontend-no-monitoring
         template: build-frontend
-        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False'"
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'False' && {% raw %}{{tasks.test-frontend-no-monitoring.status}}{% endraw %} == 'Succeeded'"
         dependencies:
         - test-frontend-no-monitoring  # Must pass tests first
         - timestamp
@@ -163,10 +163,10 @@ spec:
           - name: image-tag
             value: "{% raw %}{{tasks.timestamp.outputs.parameters.timestamp}}{% endraw %}"
       
-      # Send workflow completed event (only if monitoring enabled)
+      # Send workflow completed event (only if monitoring enabled and builds succeeded)
       - name: workflow-completed
         template: send-event
-        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True'"
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True' && {% raw %}{{tasks.build-backend.status}}{% endraw %} == 'Succeeded' && {% raw %}{{tasks.build-frontend.status}}{% endraw %} == 'Succeeded'"
         dependencies:
         - build-backend
         - build-frontend
@@ -180,6 +180,26 @@ spec:
             value: "workflow"
           - name: status
             value: "succeeded"
+      
+      # Send workflow failed event if tests failed
+      - name: workflow-failed
+        template: send-event
+        when: "{% raw %}{{workflow.parameters.enable-monitoring}}{% endraw %} == 'True' && ({% raw %}{{tasks.test-backend.status}}{% endraw %} == 'Failed' || {% raw %}{{tasks.test-frontend.status}}{% endraw %} == 'Failed')"
+        dependencies:
+        - test-backend
+        - test-frontend
+        arguments:
+          parameters:
+          - name: pipeline-id
+            value: "{% raw %}{{tasks.create-pipeline.outputs.parameters.pipeline-id}}{% endraw %}"
+          - name: event-type
+            value: "workflow_failed"
+          - name: component
+            value: "workflow"
+          - name: status
+            value: "failed"
+          - name: error-message
+            value: "Tests failed"
   
   # Test Backend Template
   - name: test-backend
@@ -481,8 +501,6 @@ spec:
             value: "running"
     - - name: run-tests
         template: test-backend
-        continueOn:
-          failed: true
     - - name: end-event
         template: send-event
         arguments:
@@ -497,6 +515,7 @@ spec:
             value: "{% raw %}{{steps.run-tests.status}}{% endraw %}"
           - name: error-message
             value: "{% raw %}{{steps.run-tests.outputs.parameters.error-message}}{% endraw %}"
+        when: "{% raw %}{{steps.run-tests.status}}{% endraw %} != ''"
   
   - name: test-frontend-with-events
     inputs:
@@ -517,8 +536,6 @@ spec:
             value: "running"
     - - name: run-tests
         template: test-frontend
-        continueOn:
-          failed: true
     - - name: end-event
         template: send-event
         arguments:
@@ -533,6 +550,7 @@ spec:
             value: "{% raw %}{{steps.run-tests.status}}{% endraw %}"
           - name: error-message
             value: "{% raw %}{{steps.run-tests.outputs.parameters.error-message}}{% endraw %}"
+        when: "{% raw %}{{steps.run-tests.status}}{% endraw %} != ''"
   
   - name: build-backend-with-events
     inputs:
@@ -558,8 +576,6 @@ spec:
           parameters:
           - name: image-tag
             value: "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"
-        continueOn:
-          failed: true
     - - name: end-event
         template: send-event
         arguments:
@@ -601,8 +617,6 @@ spec:
           parameters:
           - name: image-tag
             value: "{% raw %}{{inputs.parameters.image-tag}}{% endraw %}"
-        continueOn:
-          failed: true
     - - name: end-event
         template: send-event
         arguments:
