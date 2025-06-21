@@ -135,6 +135,22 @@
         gitea_repo_description: "{{ project_description | default(project_name + ' deployment') }}"
         gitea_hostname: "git.{{ domain_name }}"
 
+    # Get CI/CD monitoring token for workflow template
+    - name: Get thinkube-control API token for workflows
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: v1
+        kind: Secret
+        namespace: thinkube-control
+        name: cicd-monitoring-token
+      register: cicd_monitoring_token
+      failed_when: cicd_monitoring_token.resources | length == 0
+
+    # Set CI/CD API token for workflow template
+    - name: Set CI/CD API token variable
+      ansible.builtin.set_fact:
+        cicd_api_token: "{{ cicd_monitoring_token.resources[0].data.token | b64decode }}"
+
     # Deploy the CI/CD WorkflowTemplate before configuring webhook
     - name: Deploy CI/CD WorkflowTemplate for webhook triggers
       kubernetes.core.k8s:
