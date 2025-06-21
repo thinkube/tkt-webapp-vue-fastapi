@@ -3,7 +3,7 @@ import logging
 from typing import Dict
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from app.core.config import settings
-from app.models.dashboards import UserInfo, AuthInfo, Token
+from app.models.auth import UserInfo, AuthInfo, Token
 from app.core.security import get_current_active_user, exchange_code_for_token, User
 
 router = APIRouter()

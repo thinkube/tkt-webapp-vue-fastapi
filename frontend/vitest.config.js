@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: ['./src/test/setup.js'],
     coverage: {
       reporter: ['text', 'html'],
