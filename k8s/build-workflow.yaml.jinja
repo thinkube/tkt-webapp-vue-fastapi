@@ -20,7 +20,7 @@ spec:
   arguments:
     parameters:
     - name: enable-monitoring
-      value: "{% if enable_cicd_monitoring %}true{% else %}false{% endif %}"
+      value: "{% if enable_cicd_monitoring %}True{% else %}False{% endif %}"
   
   # Run on master node where shared-code exists
   nodeSelector:

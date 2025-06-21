@@ -31,6 +31,7 @@
     gitea_org: "thinkube-deployments"
     gitea_repo_name: "{{ project_name }}"
     argocd_namespace: "argocd"
+    argocd_server: "argocd.{{ domain_name }}:443"
     
     # Shared paths (provided by thinkube-control)
     shared_code_path: "/home"
