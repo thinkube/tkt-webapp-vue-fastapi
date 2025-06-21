@@ -10,14 +10,6 @@ if [ -f .env.test ]; then
     export $(cat .env.test | grep -v '^#' | xargs)
 fi
 
-# Set PostgreSQL variables from Kubernetes environment
-# These come from the admin-credentials secret
-export POSTGRES_USER="${ADMIN_USERNAME:-tkadmin}"
-export POSTGRES_PASSWORD="${ADMIN_PASSWORD}"
-
-# Ensure POSTGRES_PORT is set as integer
-export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-
 # Run tests with coverage
 pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=html
 
