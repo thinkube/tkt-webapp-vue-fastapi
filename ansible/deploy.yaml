@@ -204,7 +204,7 @@
           ✅ Application deployed successfully!
           
           Application URL: https://{{ app_host }}
-          GitHub Repo: {{ github_repo_url }}
+          Template Source: {{ template_url }}
           Gitea Repo: https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}
           
           Namespace: {{ k8s_namespace }}
