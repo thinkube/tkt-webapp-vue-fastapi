@@ -25,6 +25,7 @@
     keycloak_app_client_id: "{{ project_name }}"
     keycloak_admin_username: "{{ admin_username }}"
     keycloak_admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+    admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     
     # GitOps configuration (consistent with thinkube-control)
     use_github: false
