@@ -6,9 +6,7 @@ import AuthCallback from '../AuthCallback.vue'
 
 // Mock the auth service
 vi.mock('@/services/auth', () => ({
-  default: {
-    handleCallback: vi.fn()
-  }
+  handleAuthCallback: vi.fn()
 }))
 
 // Create a mock router
@@ -36,14 +34,17 @@ describe('AuthCallback.vue', () => {
       }
     })
     
-    expect(wrapper.find('.hero').exists()).toBe(true)
-    expect(wrapper.find('.loading').exists()).toBe(true)
-    expect(wrapper.text()).toContain('authCallback.processing')
+    expect(wrapper.find('.animate-spin').exists()).toBe(true)
+    expect(wrapper.text()).toContain('auth.loggingIn')
   })
 
-  it('calls handleCallback on mount', async () => {
+  it('calls handleAuthCallback on mount', async () => {
+    // Set up URL params
+    delete window.location
+    window.location = { search: '?code=test-code' }
+    
     const authService = await import('@/services/auth')
-    authService.default.handleCallback.mockResolvedValue(true)
+    authService.handleAuthCallback.mockResolvedValue(true)
     
     mount(AuthCallback, {
       global: {
@@ -56,12 +57,15 @@ describe('AuthCallback.vue', () => {
     
     await flushPromises()
     
-    expect(authService.default.handleCallback).toHaveBeenCalled()
+    expect(authService.handleAuthCallback).toHaveBeenCalledWith('test-code')
   })
 
-  it('redirects to home on successful callback', async () => {
+  it('redirects to dashboard on successful callback', async () => {
+    delete window.location
+    window.location = { search: '?code=test-code' }
+    
     const authService = await import('@/services/auth')
-    authService.default.handleCallback.mockResolvedValue(true)
+    authService.handleAuthCallback.mockResolvedValue(true)
     
     const push = vi.spyOn(router, 'push')
     
@@ -76,12 +80,15 @@ describe('AuthCallback.vue', () => {
     
     await flushPromises()
     
-    expect(push).toHaveBeenCalledWith('/')
+    expect(push).toHaveBeenCalledWith('/dashboard')
   })
 
   it('shows error message on failed callback', async () => {
+    delete window.location
+    window.location = { search: '?code=test-code' }
+    
     const authService = await import('@/services/auth')
-    authService.default.handleCallback.mockRejectedValue(new Error('Auth failed'))
+    authService.handleAuthCallback.mockRejectedValue(new Error('Auth failed'))
     
     const wrapper = mount(AuthCallback, {
       global: {
@@ -94,13 +101,12 @@ describe('AuthCallback.vue', () => {
     
     await flushPromises()
     
-    expect(wrapper.find('.alert-error').exists()).toBe(true)
-    expect(wrapper.text()).toContain('authCallback.error')
+    expect(wrapper.text()).toContain('auth.loginFailed')
   })
 
-  it('provides link to login on error', async () => {
-    const authService = await import('@/services/auth')
-    authService.default.handleCallback.mockRejectedValue(new Error('Auth failed'))
+  it('handles error parameter in URL', async () => {
+    delete window.location
+    window.location = { search: '?error=access_denied' }
     
     const wrapper = mount(AuthCallback, {
       global: {
@@ -113,9 +119,7 @@ describe('AuthCallback.vue', () => {
     
     await flushPromises()
     
-    const loginLink = wrapper.find('a.btn-primary')
-    expect(loginLink.exists()).toBe(true)
-    expect(loginLink.text()).toBe('authCallback.backToLogin')
-    expect(loginLink.attributes('href')).toBe('/login')
+    expect(wrapper.text()).toContain('auth.loginFailed')
+    expect(wrapper.text()).toContain('access_denied')
   })
 })

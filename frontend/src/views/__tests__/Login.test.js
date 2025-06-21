@@ -33,7 +33,7 @@ describe('Login.vue', () => {
     
     expect(wrapper.find('.hero').exists()).toBe(true)
     expect(wrapper.find('.card').exists()).toBe(true)
-    expect(wrapper.find('h2').text()).toBe('login.title')
+    expect(wrapper.find('h2').text()).toBe('auth.loginTitle')
   })
 
   it('displays login button', () => {
@@ -48,7 +48,7 @@ describe('Login.vue', () => {
     
     const loginButton = wrapper.find('.btn-primary')
     expect(loginButton.exists()).toBe(true)
-    expect(loginButton.text()).toBe('login.loginButton')
+    expect(loginButton.text()).toBe('auth.loginButton')
   })
 
   it('calls auth service when login button clicked', async () => {

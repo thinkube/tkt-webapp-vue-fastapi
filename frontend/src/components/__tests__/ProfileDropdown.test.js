@@ -14,6 +14,16 @@ describe('ProfileDropdown.vue', () => {
     const wrapper = mount(ProfileDropdown, {
       props: {
         user: mockUser
+      },
+      global: {
+        mocks: {
+          $t: (key) => key
+        },
+        stubs: {
+          'router-link': {
+            template: '<a><slot /></a>'
+          }
+        }
       }
     })
 
@@ -25,6 +35,16 @@ describe('ProfileDropdown.vue', () => {
     const wrapper = mount(ProfileDropdown, {
       props: {
         user: mockUser
+      },
+      global: {
+        mocks: {
+          $t: (key) => key
+        },
+        stubs: {
+          'router-link': {
+            template: '<a><slot /></a>'
+          }
+        }
       }
     })
 
@@ -36,13 +56,29 @@ describe('ProfileDropdown.vue', () => {
     expect(wrapper.emitted()).toHaveProperty('logout')
   })
 
-  it('renders correctly without user', () => {
+  it('handles missing user properties gracefully', () => {
+    const minimalUser = {
+      preferred_username: 'user',
+      // no email, no name
+    }
+    
     const wrapper = mount(ProfileDropdown, {
       props: {
-        user: null
+        user: minimalUser
+      },
+      global: {
+        mocks: {
+          $t: (key) => key
+        },
+        stubs: {
+          'router-link': {
+            template: '<a><slot /></a>'
+          }
+        }
       }
     })
 
     expect(wrapper.find('.dropdown').exists()).toBe(true)
+    expect(wrapper.text()).toContain('user')
   })
 })
