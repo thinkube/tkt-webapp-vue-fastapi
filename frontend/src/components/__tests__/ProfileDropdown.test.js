@@ -27,8 +27,8 @@ describe('ProfileDropdown.vue', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Test User')
-    expect(wrapper.text()).toContain('test@example.com')
+    expect(wrapper.find('.text-center').text()).toContain('testuser')
+    expect(wrapper.find('.text-xs').text()).toContain('test@example.com')
   })
 
   it('emits logout event when logout is clicked', async () => {
