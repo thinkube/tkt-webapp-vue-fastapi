@@ -113,6 +113,35 @@
           protocol: "openid-connect"
 
   tasks:
+    # Create databases for the application
+    - name: Create production database
+      kubernetes.core.k8s_exec:
+        kubeconfig: "{{ kubeconfig }}"
+        namespace: postgres
+        pod: postgresql-official-0
+        container: postgres
+        command: |
+          psql -U {{ admin_username }} -d postgres -c "CREATE DATABASE {{ project_name | replace('-', '_') }} OWNER {{ admin_username }};"
+      register: create_prod_db
+      failed_when: 
+        - create_prod_db.rc != 0
+        - '"already exists" not in create_prod_db.stderr'
+      changed_when: create_prod_db.rc == 0
+
+    - name: Create test database
+      kubernetes.core.k8s_exec:
+        kubeconfig: "{{ kubeconfig }}"
+        namespace: postgres
+        pod: postgresql-official-0
+        container: postgres
+        command: |
+          psql -U {{ admin_username }} -d postgres -c "CREATE DATABASE test_app_db OWNER {{ admin_username }};"
+      register: create_test_db
+      failed_when: 
+        - create_test_db.rc != 0
+        - '"already exists" not in create_test_db.stderr'
+      changed_when: create_test_db.rc == 0
+
     # Set ArgoCD credentials from environment (for container execution)
     - name: Set ArgoCD credentials from environment
       ansible.builtin.set_fact:
