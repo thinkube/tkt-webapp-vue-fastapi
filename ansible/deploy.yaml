@@ -194,6 +194,7 @@
         name: container_deployment/argocd
       vars:
         app_name: "{{ project_name }}"
+        app_namespace: "{{ k8s_namespace }}"
         argocd_repo_url: "https://git.{{ domain_name }}/{{ gitea_org }}/{{ gitea_repo_name }}.git"
         use_github: false
 
