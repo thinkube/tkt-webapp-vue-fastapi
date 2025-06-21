@@ -1,32 +1,20 @@
 // src/layouts/__tests__/MainLayout.test.js
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '../MainLayout.vue'
 
-// Mock the auth service
-vi.mock('@/services/auth', () => ({
-  default: {
-    logout: vi.fn(),
-    getCurrentUser: vi.fn()
-  }
+// Mock the auth store
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: vi.fn()
 }))
 
 // Mock child components
 vi.mock('@/components/NavBar.vue', () => ({
   default: {
     name: 'NavBar',
-    template: '<nav class="navbar"><slot name="end"></slot></nav>',
-    props: ['currentRoute']
-  }
-}))
-
-vi.mock('@/components/ProfileDropdown.vue', () => ({
-  default: {
-    name: 'ProfileDropdown',
-    template: '<div class="profile-dropdown" @click="$emit(\'logout\')">{{ user?.name }}</div>',
-    props: ['user'],
-    emits: ['logout']
+    template: '<nav class="navbar">NavBar</nav>',
+    props: ['user']
   }
 }))
 
@@ -40,6 +28,7 @@ const router = createRouter({
 })
 
 describe('MainLayout.vue', () => {
+  let mockAuthStore
   let mockUser
 
   beforeEach(() => {
@@ -50,29 +39,61 @@ describe('MainLayout.vue', () => {
       email: 'test@example.com',
       preferred_username: 'testuser'
     }
+    
+    // Default auth store mock
+    mockAuthStore = {
+      user: null,
+      loading: false,
+      fetchUser: vi.fn()
+    }
   })
 
-  it('renders layout structure', () => {
+  it('renders loading state when loading', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore.mockReturnValue({
+      ...mockAuthStore,
+      loading: true
+    })
+    
     const wrapper = mount(MainLayout, {
       global: {
         plugins: [router],
         mocks: {
           $t: (key) => key
         }
-      },
-      slots: {
-        default: '<div>Page Content</div>'
+      }
+    })
+    
+    expect(wrapper.find('.loading').exists()).toBe(true)
+    expect(wrapper.text()).toContain('errors.general.loading')
+  })
+
+  it('renders navbar when user is authenticated', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore.mockReturnValue({
+      ...mockAuthStore,
+      user: mockUser
+    })
+    
+    const wrapper = mount(MainLayout, {
+      global: {
+        plugins: [router],
+        mocks: {
+          $t: (key) => key
+        },
+        stubs: {
+          RouterView: true
+        }
       }
     })
     
     expect(wrapper.find('.navbar').exists()).toBe(true)
     expect(wrapper.find('main').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Page Content')
   })
 
-  it('displays user profile when authenticated', async () => {
-    const authService = await import('@/services/auth')
-    authService.default.getCurrentUser.mockResolvedValue(mockUser)
+  it('shows error state when no user and not loading', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore.mockReturnValue(mockAuthStore)
     
     const wrapper = mount(MainLayout, {
       global: {
@@ -83,40 +104,17 @@ describe('MainLayout.vue', () => {
       }
     })
     
-    await wrapper.vm.$nextTick()
-    
-    expect(wrapper.find('.profile-dropdown').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Test User')
+    expect(wrapper.text()).toContain('errors.loadingApp.title')
+    expect(wrapper.find('.btn-primary').exists()).toBe(true)
   })
 
-  it('handles logout when profile dropdown emits logout', async () => {
-    const authService = await import('@/services/auth')
-    authService.default.getCurrentUser.mockResolvedValue(mockUser)
-    authService.default.logout.mockResolvedValue()
-    
-    const push = vi.spyOn(router, 'push')
-    
-    const wrapper = mount(MainLayout, {
-      global: {
-        plugins: [router],
-        mocks: {
-          $t: (key) => key
-        }
-      }
+  it('calls fetchUser on mount when no user', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    const fetchUserMock = vi.fn()
+    useAuthStore.mockReturnValue({
+      ...mockAuthStore,
+      fetchUser: fetchUserMock
     })
-    
-    await wrapper.vm.$nextTick()
-    
-    const profileDropdown = wrapper.find('.profile-dropdown')
-    await profileDropdown.trigger('click')
-    
-    expect(authService.default.logout).toHaveBeenCalled()
-    expect(push).toHaveBeenCalledWith('/login')
-  })
-
-  it('checks for user on mount', async () => {
-    const authService = await import('@/services/auth')
-    authService.default.getCurrentUser.mockResolvedValue(mockUser)
     
     mount(MainLayout, {
       global: {
@@ -127,14 +125,43 @@ describe('MainLayout.vue', () => {
       }
     })
     
-    expect(authService.default.getCurrentUser).toHaveBeenCalled()
+    await flushPromises()
+    
+    expect(fetchUserMock).toHaveBeenCalled()
   })
 
-  it('handles error when getting current user', async () => {
-    const authService = await import('@/services/auth')
-    authService.default.getCurrentUser.mockRejectedValue(new Error('Auth error'))
+  it('does not call fetchUser when user exists', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    const fetchUserMock = vi.fn()
+    useAuthStore.mockReturnValue({
+      ...mockAuthStore,
+      user: mockUser,
+      fetchUser: fetchUserMock
+    })
     
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mount(MainLayout, {
+      global: {
+        plugins: [router],
+        mocks: {
+          $t: (key) => key
+        }
+      }
+    })
+    
+    await flushPromises()
+    
+    expect(fetchUserMock).not.toHaveBeenCalled()
+  })
+
+  it('reload button calls window.location.reload', async () => {
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore.mockReturnValue(mockAuthStore)
+    
+    const reloadMock = vi.fn()
+    Object.defineProperty(window, 'location', {
+      value: { reload: reloadMock },
+      writable: true
+    })
     
     const wrapper = mount(MainLayout, {
       global: {
@@ -145,27 +172,9 @@ describe('MainLayout.vue', () => {
       }
     })
     
-    await wrapper.vm.$nextTick()
+    const reloadButton = wrapper.find('.btn-primary')
+    await reloadButton.trigger('click')
     
-    expect(consoleError).toHaveBeenCalled()
-    expect(wrapper.find('.profile-dropdown').exists()).toBe(false)
-    
-    consoleError.mockRestore()
-  })
-
-  it('passes current route to NavBar', async () => {
-    await router.push('/')
-    
-    const wrapper = mount(MainLayout, {
-      global: {
-        plugins: [router],
-        mocks: {
-          $t: (key) => key
-        }
-      }
-    })
-    
-    const navbar = wrapper.findComponent({ name: 'NavBar' })
-    expect(navbar.props('currentRoute')).toBe('/')
+    expect(reloadMock).toHaveBeenCalled()
   })
 })

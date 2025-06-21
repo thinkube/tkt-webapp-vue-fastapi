@@ -6,9 +6,7 @@ import Login from '../Login.vue'
 
 // Mock the auth service
 vi.mock('@/services/auth', () => ({
-  default: {
-    login: vi.fn()
-  }
+  redirectToLogin: vi.fn()
 }))
 
 // Create a mock router
@@ -31,7 +29,6 @@ describe('Login.vue', () => {
       }
     })
     
-    expect(wrapper.find('.hero').exists()).toBe(true)
     expect(wrapper.find('.card').exists()).toBe(true)
     expect(wrapper.find('h2').text()).toBe('auth.loginTitle')
   })
@@ -66,10 +63,10 @@ describe('Login.vue', () => {
     const loginButton = wrapper.find('.btn-primary')
     await loginButton.trigger('click')
     
-    expect(authService.default.login).toHaveBeenCalled()
+    expect(authService.redirectToLogin).toHaveBeenCalled()
   })
 
-  it('displays features list', () => {
+  it('displays login message', () => {
     const wrapper = mount(Login, {
       global: {
         plugins: [router],
@@ -79,7 +76,6 @@ describe('Login.vue', () => {
       }
     })
     
-    const features = wrapper.findAll('li')
-    expect(features.length).toBeGreaterThan(0)
+    expect(wrapper.text()).toContain('auth.loginMessage')
   })
 })

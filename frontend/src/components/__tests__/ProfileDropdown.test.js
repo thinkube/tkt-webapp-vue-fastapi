@@ -48,9 +48,10 @@ describe('ProfileDropdown.vue', () => {
       }
     })
 
-    // Find and click logout button
-    const logoutButton = wrapper.find('button')
-    await logoutButton.trigger('click')
+    // Find and click logout link - it's the last anchor in the dropdown
+    const links = wrapper.findAll('a')
+    const logoutLink = links[links.length - 1]
+    await logoutLink.trigger('click')
 
     // Check that logout event was emitted
     expect(wrapper.emitted()).toHaveProperty('logout')

@@ -23,9 +23,9 @@ describe('NotFound.vue', () => {
       }
     })
     
-    expect(wrapper.find('.hero').exists()).toBe(true)
-    expect(wrapper.find('h1').text()).toBe('errors.notFound.title')
-    expect(wrapper.text()).toContain('404')
+    expect(wrapper.find('.min-h-screen').exists()).toBe(true)
+    expect(wrapper.find('.text-9xl').text()).toBe('errors.notFound.title')
+    expect(wrapper.find('h1').text()).toBe('errors.notFound.heading')
   })
 
   it('displays error message', () => {
