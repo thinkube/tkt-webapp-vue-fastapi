@@ -156,7 +156,7 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig }}"
         state: present
-        src: "{{ local_repo_path }}/k8s/build-workflow.yaml"
+        definition: "{{ lookup('template', local_repo_path + '/k8s/build-workflow.yaml.jinja') | from_yaml }}"
 
     # Configure webhook BEFORE pushing (so it triggers on first push)
     - name: Configure Gitea webhook
