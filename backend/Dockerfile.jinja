@@ -1,5 +1,5 @@
 # Use optimized base image with common dependencies from library
-FROM registry.thinkube.com/library/python-base:3.11-slim
+FROM {{ registry_url }}/library/python-base:{{ python_version }}-slim
 
 WORKDIR /app
 

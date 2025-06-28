@@ -9,6 +9,12 @@ metadata:
   tags: ["webapp", "vue", "fastapi", "fullstack"]
 
 parameters:
+  # Infrastructure Configuration
+  - name: registry_url
+    type: str
+    description: Container registry URL (e.g., registry.yourdomain.com)
+    group: "Infrastructure"
+
   # Frontend Configuration
   - name: vue_version
     type: choice
