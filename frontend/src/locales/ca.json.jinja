@@ -1,0 +1,128 @@
+{
+  "app": {
+    "title": "{{ project_title }}"
+  },
+  "nav": {
+    "home": "Inici",
+    {% if enable_api_tokens -%}
+    "apiTokens": "Tokens API",
+    {% endif -%}
+    "logout": "Tancar sessió"
+  },
+  "home": {
+    "title": "Benvingut a {{ project_title }}",
+    "subtitle": "Gestiona les teves tasques eficientment",
+    "noTasks": "No s'han trobat tasques",
+    "createFirst": "Crea la teva primera tasca",
+    "createTask": "Crear Tasca",
+    "editTask": "Editar Tasca",
+    "confirmDelete": "Estàs segur que vols eliminar aquesta tasca?",
+    "taskTitle": "Nova Tasca",
+    "taskDescription": "Descripció de la tasca a completar"
+  },
+  "task": {
+    "title": "Títol",
+    "titlePlaceholder": "Introdueix el títol de la tasca",
+    "description": "Descripció",
+    "descriptionPlaceholder": "Introdueix la descripció de la tasca (opcional)",
+    "status": "Estat",
+    "statusTodo": "Per fer",
+    "statusInProgress": "En progrés",
+    "statusDone": "Completada",
+    "priority": "Prioritat",
+    "priorityLow": "Baixa",
+    "priorityMedium": "Mitjana",
+    "priorityHigh": "Alta",
+    "dueDate": "Data de venciment"
+  },
+  {% if enable_api_tokens -%}
+  "apiTokens": {
+    "title": "Tokens API",
+    "createToken": {
+      "title": "Crear nou token",
+      "nameLabel": "Nom del token",
+      "namePlaceholder": "El meu token API",
+      "expiresLabel": "Expira en (dies)",
+      "expiresPlaceholder": "Deixar buit per sense expiració",
+      "createButton": "Crear token"
+    },
+    "tokenCreated": {
+      "title": "Token creat amb èxit!",
+      "message": "Copia aquest token ara. No podràs veure'l de nou.",
+      "copyButton": "Copiar al porta-retalls",
+      "copied": "Token copiat al porta-retalls!"
+    },
+    "tokenList": {
+      "title": "Els teus tokens",
+      "noTokens": "No hi ha tokens API encara. Crea'n un a dalt!",
+      "table": {
+        "name": "Nom",
+        "created": "Creat",
+        "expires": "Expira",
+        "lastUsed": "Últim ús",
+        "actions": "Accions",
+        "never": "Mai",
+        "revoke": "Revocar",
+        "revoked": "Revocat"
+      },
+      "confirmRevoke": "Estàs segur que vols revocar aquest token?"
+    },
+    "usage": {
+      "title": "Com utilitzar els tokens API",
+      "cli": {
+        "title": "CLI / curl",
+        "description": "Inclou el token a la capçalera Authorization:"
+      }
+    },
+    "errors": {
+      "createFailed": "Error al crear el token",
+      "revokeFailed": "Error al revocar el token",
+      "nameMissing": "Si us plau proporciona un nom per al token"
+    }
+  },
+  {% endif -%}
+  "profile": {
+    "roles": "Rols"
+  },
+  "auth": {
+    "loginTitle": "{{ project_title }}",
+    "loginMessage": "Si us plau inicia sessió per accedir a l'aplicació",
+    "loginButton": "Iniciar sessió amb Keycloak",
+    "loggingIn": "Completant autenticació...",
+    "loginSuccess": "Autenticació exitosa. Redirigint...",
+    "loginFailed": "Error d'autenticació",
+    "noCode": "No s'ha rebut codi d'autorització",
+    "redirecting": "Redirigint...",
+    "configError": "Error de configuració d'autenticació. Si us plau revisa la consola per més detalls."
+  },
+  "errors": {
+    "notFound": {
+      "title": "404",
+      "heading": "Pàgina no trobada",
+      "message": "La pàgina que cerques no existeix o ha estat moguda.",
+      "backButton": "Tornar a l'inici"
+    },
+    "loadingApp": {
+      "title": "Error al carregar l'aplicació",
+      "message": "No s'ha pogut carregar la informació de l'usuari.",
+      "reload": "Recarregar"
+    },
+    "general": {
+      "loading": "Carregant..."
+    }
+  },
+  "common": {
+    "open": "Obrir",
+    "close": "Tancar",
+    "save": "Desar",
+    "cancel": "Cancel·lar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualitzar",
+    "back": "Enrere",
+    "next": "Següent",
+    "yes": "Sí",
+    "no": "No"
+  }
+}

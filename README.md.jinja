@@ -1,0 +1,44 @@
+# {{ project_title | default(project_name) }}
+
+{{ project_description }}
+
+## Technology Stack
+
+- **Frontend**: Vue.js {{ vue_version }} with {{ ui_framework }}
+- **Backend**: FastAPI with Python {{ python_version }}
+{% if use_postgresql %}
+- **Database**: PostgreSQL
+{% endif %}
+{% if auth_provider != "none" %}
+- **Authentication**: {{ auth_provider | title }}
+{% endif %}
+
+## Development
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+## Deployment
+
+This application is deployed on Thinkube platform.
+
+- Frontend: https://{{ project_name }}.{{ domain_name }}
+- API: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}
+{% if enable_api_docs %}
+- API Docs: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}/docs
+{% endif %}
+
+## 🤖 Generated with [Thinkube](https://github.com/thinkube/thinkube)

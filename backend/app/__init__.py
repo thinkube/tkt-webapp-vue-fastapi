@@ -1,0 +1,68 @@
+# app/__init__.py
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.api.router import api_router
+from app.db.session import Base, get_engine
+from app.db.cicd_session import get_cicd_engine
+# Import models to ensure they're registered with Base
+from app.core.api_tokens import APIToken
+from app.models.cicd import Pipeline, PipelineEvent, LogReference, PipelineMetric
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create database tables
+    # Create tables in main database (for auth/tokens)
+    Base.metadata.create_all(bind=get_engine())
+    
+    # Create tables in CI/CD monitoring database
+    # Note: The tables already exist from our PostgreSQL setup,
+    # but this ensures they're created if missing
+    from app.models.cicd import Base as CICDBase
+    CICDBase.metadata.create_all(bind=get_cicd_engine())
+    
+    yield
+    # Shutdown: Clean up resources if needed
+
+# Initialize FastAPI app
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url=f"{settings.API_V1_STR}/docs",
+    redoc_url=f"{settings.API_V1_STR}/redoc",
+    lifespan=lifespan
+)
+
+# Set up CORS
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+# Include the API router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Welcome to the K8s Dashboard Hub API",
+        "docs_url": f"{settings.API_V1_STR}/docs",
+        "redoc_url": f"{settings.API_V1_STR}/redoc",
+        "openapi_url": f"{settings.API_V1_STR}/openapi.json",
+        "version": "1.0.0",
+    }
+
+# Health check endpoint
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+# Export the app for uvicorn
+__all__ = ["app"]

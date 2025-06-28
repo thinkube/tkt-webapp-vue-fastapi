@@ -1,0 +1,128 @@
+{
+  "app": {
+    "title": "{{ project_title }}"
+  },
+  "nav": {
+    "home": "Inicio",
+    {% if enable_api_tokens -%}
+    "apiTokens": "Tokens API",
+    {% endif -%}
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "title": "Bienvenido a {{ project_title }}",
+    "subtitle": "Gestiona tus tareas eficientemente",
+    "noTasks": "No se encontraron tareas",
+    "createFirst": "Crea tu primera tarea",
+    "createTask": "Crear Tarea",
+    "editTask": "Editar Tarea",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esta tarea?",
+    "taskTitle": "Nueva Tarea",
+    "taskDescription": "Descripción de la tarea a completar"
+  },
+  "task": {
+    "title": "Título",
+    "titlePlaceholder": "Introduce el título de la tarea",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Introduce la descripción de la tarea (opcional)",
+    "status": "Estado",
+    "statusTodo": "Por hacer",
+    "statusInProgress": "En progreso",
+    "statusDone": "Completada",
+    "priority": "Prioridad",
+    "priorityLow": "Baja",
+    "priorityMedium": "Media",
+    "priorityHigh": "Alta",
+    "dueDate": "Fecha de vencimiento"
+  },
+  {% if enable_api_tokens -%}
+  "apiTokens": {
+    "title": "Tokens API",
+    "createToken": {
+      "title": "Crear nuevo token",
+      "nameLabel": "Nombre del token",
+      "namePlaceholder": "Mi token API",
+      "expiresLabel": "Expira en (días)",
+      "expiresPlaceholder": "Dejar vacío para sin expiración",
+      "createButton": "Crear token"
+    },
+    "tokenCreated": {
+      "title": "¡Token creado con éxito!",
+      "message": "Copia este token ahora. No podrás verlo de nuevo.",
+      "copyButton": "Copiar al portapapeles",
+      "copied": "¡Token copiado al portapapeles!"
+    },
+    "tokenList": {
+      "title": "Tus tokens",
+      "noTokens": "No hay tokens API todavía. ¡Crea uno arriba!",
+      "table": {
+        "name": "Nombre",
+        "created": "Creado",
+        "expires": "Expira",
+        "lastUsed": "Último uso",
+        "actions": "Acciones",
+        "never": "Nunca",
+        "revoke": "Revocar",
+        "revoked": "Revocado"
+      },
+      "confirmRevoke": "¿Estás seguro de que quieres revocar este token?"
+    },
+    "usage": {
+      "title": "Cómo usar los tokens API",
+      "cli": {
+        "title": "CLI / curl",
+        "description": "Incluye el token en el encabezado Authorization:"
+      }
+    },
+    "errors": {
+      "createFailed": "Error al crear el token",
+      "revokeFailed": "Error al revocar el token",
+      "nameMissing": "Por favor proporciona un nombre para el token"
+    }
+  },
+  {% endif -%}
+  "profile": {
+    "roles": "Roles"
+  },
+  "auth": {
+    "loginTitle": "{{ project_title }}",
+    "loginMessage": "Por favor inicia sesión para acceder a la aplicación",
+    "loginButton": "Iniciar sesión con Keycloak",
+    "loggingIn": "Completando autenticación...",
+    "loginSuccess": "Autenticación exitosa. Redirigiendo...",
+    "loginFailed": "Error de autenticación",
+    "noCode": "No se recibió código de autorización",
+    "redirecting": "Redirigiendo...",
+    "configError": "Error de configuración de autenticación. Por favor revisa la consola para más detalles."
+  },
+  "errors": {
+    "notFound": {
+      "title": "404",
+      "heading": "Página no encontrada",
+      "message": "La página que buscas no existe o ha sido movida.",
+      "backButton": "Volver al inicio"
+    },
+    "loadingApp": {
+      "title": "Error al cargar la aplicación",
+      "message": "No se pudo cargar la información del usuario.",
+      "reload": "Recargar"
+    },
+    "general": {
+      "loading": "Cargando..."
+    }
+  },
+  "common": {
+    "open": "Abrir",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "yes": "Sí",
+    "no": "No"
+  }
+}
