@@ -9,53 +9,6 @@ metadata:
   tags: ["webapp", "vue", "fastapi", "fullstack"]
 
 parameters:
-  # Infrastructure Configuration
-  - name: registry_url
-    type: str
-    description: Container registry URL (e.g., registry.yourdomain.com)
-    group: "Infrastructure"
-
-  # Frontend Configuration
-  - name: vue_version
-    type: choice
-    description: Vue.js version to use
-    choices: ["3.3", "3.4"]
-    default: "3.4"
-    group: "Frontend"
-
-  - name: ui_framework
-    type: choice
-    description: UI component framework
-    choices: ["tailwindcss", "vuetify", "element-plus", "none"]
-    default: "tailwindcss"
-    group: "Frontend"
-
-  - name: enable_pwa
-    type: bool
-    description: Enable Progressive Web App features?
-    default: false
-    group: "Frontend"
-
-  # Backend Configuration
-  - name: python_version
-    type: choice
-    description: Python version
-    choices: ["3.10", "3.11", "3.12"]
-    default: "3.11"
-    group: "Backend"
-
-  - name: api_prefix
-    type: str
-    description: API route prefix
-    default: "/api/v1"
-    group: "Backend"
-
-  - name: enable_cors
-    type: bool
-    description: Enable CORS support?
-    default: true
-    group: "Backend"
-
   # Database Configuration
   - name: use_postgresql
     type: bool
@@ -63,64 +16,31 @@ parameters:
     default: true
     group: "Database"
 
-  - name: enable_migrations
-    type: bool
-    description: Enable database migrations?
-    default: true
-    group: "Database"
-
-  # Security Configuration
-  - name: auth_provider
-    type: choice
-    description: Authentication provider
-    choices: ["keycloak", "auth0", "none"]
-    default: "keycloak"
-    group: "Security"
-
+  # API Features
   - name: enable_api_tokens
     type: bool
     description: Enable API token management?
     default: true
-    group: "Security"
+    group: "API Features"
 
-  # Features
-  - name: enable_i18n
+  - name: enable_api_docs
     type: bool
-    description: Enable internationalization?
+    description: Enable Swagger/OpenAPI documentation?
     default: true
-    group: "Features"
+    group: "API Features"
 
-  - name: default_language
-    type: choice
-    description: Default language
-    choices: ["en", "es", "ca"]
-    default: "en"
-    group: "Features"
-
+  # Advanced Features
   - name: enable_websockets
     type: bool
     description: Enable WebSocket support?
     default: false
-    group: "Features"
+    group: "Advanced Features"
 
   - name: enable_file_uploads
     type: bool
     description: Enable file upload functionality?
     default: false
-    group: "Features"
-
-  # Development Options
-  - name: enable_api_docs
-    type: bool
-    description: Enable automatic API documentation?
-    default: true
-    group: "Development"
-
-  - name: enable_hot_reload
-    type: bool
-    description: Enable hot reload in development?
-    default: true
-    group: "Development"
+    group: "Advanced Features"
 
 # 🤖 Generated with [Claude Code](https://claude.ai/code)
 

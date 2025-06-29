@@ -19,18 +19,18 @@ spec:
           name: http
       environment:
         - name: API_PREFIX
-          value: "{{ api_prefix }}"
+          value: "/api/v1"
         - name: ENABLE_CORS
-          value: "{{ enable_cors | string }}"
-        {% if auth_provider != "none" %}
+          value: "true"  # Always enabled for *.thinkube.com
+        - name: CORS_ORIGINS
+          value: "https://*.thinkube.com"
         - name: AUTH_PROVIDER
-          value: "{{ auth_provider }}"
+          value: "keycloak"  # Always use Keycloak
         - name: KEYCLOAK_URL
           valueFrom:
             configMapKeyRef:
               name: keycloak-config
               key: url
-        {% endif %}
         {% if use_postgresql %}
         - name: DATABASE_URL
           valueFrom:
@@ -38,12 +38,16 @@ spec:
               name: "{{ project_name }}-db-credentials"
               key: url
         {% endif %}
+        {% if enable_api_docs %}
+        - name: ENABLE_API_DOCS
+          value: "true"
+        {% endif %}
       {% if use_postgresql %}
       dependencies:
         - postgresql
       {% endif %}
       healthcheck:
-        path: "{{ api_prefix }}/health"
+        path: "/api/v1/health"
         port: 8000
       resources:
         requests:
@@ -59,9 +63,9 @@ spec:
         dockerfile: Dockerfile
         args:
           - name: VUE_APP_API_URL
-            value: "https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}"
+            value: "https://{{ project_name }}.{{ domain_name }}/api/v1"
           - name: VUE_APP_AUTH_PROVIDER
-            value: "{{ auth_provider }}"
+            value: "keycloak"
       ports:
         - port: 80
           name: http
@@ -80,7 +84,7 @@ spec:
     rules:
       - host: "{{ project_name }}.{{ domain_name }}"
         paths:
-          - path: "{{ api_prefix }}"
+          - path: "/api/v1"
             service: backend
             port: 8000
           - path: /
@@ -114,9 +118,15 @@ spec:
       path: "/ws"
     {% endif %}
     
+    {% if enable_api_tokens %}
+    api_tokens:
+      enabled: true
+      container: backend
+    {% endif %}
+    
     monitoring:
       enabled: true
-      endpoints: ["{{ api_prefix }}/metrics"]
+      endpoints: ["/api/v1/metrics"]
     
     backup:
       enabled: "{{ use_postgresql }}"
