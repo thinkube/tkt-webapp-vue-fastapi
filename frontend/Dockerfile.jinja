@@ -1,5 +1,5 @@
 # Build stage - use optimized base from library
-FROM {{ registry_url }}/library/node-base:18-alpine as build-stage
+FROM {{ container_registry }}/library/node-base:18-alpine as build-stage
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Runtime stage - minimal image for serving built files
-FROM {{ registry_url }}/library/nginx:stable-alpine as runtime-stage
+FROM {{ container_registry }}/library/nginx:stable-alpine as runtime-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
