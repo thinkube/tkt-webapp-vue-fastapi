@@ -5,134 +5,27 @@ metadata:
   description: "{{ project_description }}"
 
 spec:
-  # Deployment mode - how containers are deployed
-  deployment_mode: separate_pods  # Each container gets its own deployment
-  
   # Container definitions
   containers:
     - name: backend
-      build:
-        context: ./backend
-        dockerfile: Dockerfile
-      ports:
-        - port: 8000
-          name: http
-      environment:
-        - name: API_PREFIX
-          value: "/api/v1"
-        - name: ENABLE_CORS
-          value: "true"  # Always enabled for *.thinkube.com
-        - name: CORS_ORIGINS
-          value: "https://*.thinkube.com"
-        - name: AUTH_PROVIDER
-          value: "keycloak"  # Always use Keycloak
-        - name: KEYCLOAK_URL
-          valueFrom:
-            configMapKeyRef:
-              name: keycloak-config
-              key: url
-        {% if use_postgresql %}
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: "{{ project_name }}-db-credentials"
-              key: url
-        {% endif %}
-        {% if enable_api_docs %}
-        - name: ENABLE_API_DOCS
-          value: "true"
-        {% endif %}
-      {% if use_postgresql %}
-      dependencies:
-        - postgresql
-      {% endif %}
-      healthcheck:
-        path: "/api/v1/health"
-        port: 8000
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "100m"
-        limits:
-          memory: "512Mi"
-          cpu: "500m"
-
+      build: ./backend
+      port: 8000
+      size: medium
+      health: /api/v1/health
+      
     - name: frontend
-      build:
-        context: ./frontend
-        dockerfile: Dockerfile
-        args:
-          - name: VUE_APP_API_URL
-            value: "https://{{ project_name }}.{{ domain_name }}/api/v1"
-          - name: VUE_APP_AUTH_PROVIDER
-            value: "keycloak"
-      ports:
-        - port: 80
-          name: http
-      resources:
-        requests:
-          memory: "128Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "200m"
+      build: ./frontend
+      port: 80
+      size: small
 
-  # Ingress configuration
-  ingress:
-    enabled: true
-    className: nginx
-    rules:
-      - host: "{{ project_name }}.{{ domain_name }}"
-        paths:
-          - path: "/api/v1"
-            service: backend
-            port: 8000
-          - path: /
-            service: frontend
-            port: 80
-    tls:
-      enabled: true
-      # Certificate will be copied from thinkube wildcard cert
+  # Routing configuration
+  routes:
+    - path: /api
+      to: backend
+    - path: /
+      to: frontend
 
-  # Optional features
-  features:
-    {% if use_postgresql %}
-    postgresql:
-      enabled: true
-      size: "10Gi"
-      version: "15"
-    {% endif %}
-    
-    {% if enable_file_uploads %}
-    storage:
-      enabled: true
-      size: "20Gi"
-      mountPath: "/app/uploads"
-      containers: ["backend"]
-    {% endif %}
-    
-    {% if enable_websockets %}
-    websockets:
-      enabled: true
-      container: backend
-      path: "/ws"
-    {% endif %}
-    
-    {% if enable_api_tokens %}
-    api_tokens:
-      enabled: true
-      container: backend
-    {% endif %}
-    
-    monitoring:
-      enabled: true
-      endpoints: ["/api/v1/metrics"]
-    
-    backup:
-      enabled: "{{ use_postgresql }}"
-      schedule: "0 2 * * *"
-      retention: "7d"
-
-# 🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+  # Services this application needs
+  services:
+    - database     # PostgreSQL for data persistence
+    - cache        # For session storage and caching
