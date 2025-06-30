@@ -10,9 +10,7 @@
         </label>
         <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
           <li><router-link to="/">{% raw %}{{ t('nav.home') }}{% endraw %}</router-link></li>
-          {% if enable_api_tokens -%}
           <li><router-link to="/tokens">{% raw %}{{ t('nav.apiTokens') }}{% endraw %}</router-link></li>
-          {% endif -%}
         </ul>
       </div>
       <router-link to="/" class="btn btn-ghost normal-case text-xl">{% raw %}{{ t('app.title') }}{% endraw %}</router-link>
@@ -21,9 +19,7 @@
     <div class="navbar-center hidden lg:flex">
       <ul class="menu menu-horizontal px-1">
         <li><router-link to="/">{% raw %}{{ t('nav.home') }}{% endraw %}</router-link></li>
-        {% if enable_api_tokens -%}
         <li><router-link to="/tokens">{% raw %}{{ t('nav.apiTokens') }}{% endraw %}</router-link></li>
-        {% endif -%}
       </ul>
     </div>
     

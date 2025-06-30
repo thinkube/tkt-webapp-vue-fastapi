@@ -4,9 +4,7 @@
   },
   "nav": {
     "home": "Inici",
-    {% if enable_api_tokens -%}
     "apiTokens": "Tokens API",
-    {% endif -%}
     "logout": "Tancar sessió"
   },
   "home": {
@@ -35,7 +33,6 @@
     "priorityHigh": "Alta",
     "dueDate": "Data de venciment"
   },
-  {% if enable_api_tokens -%}
   "apiTokens": {
     "title": "Tokens API",
     "createToken": {
@@ -80,7 +77,6 @@
       "nameMissing": "Si us plau proporciona un nom per al token"
     }
   },
-  {% endif -%}
   "profile": {
     "roles": "Rols"
   },

@@ -4,9 +4,7 @@
   },
   "nav": {
     "home": "Inicio",
-    {% if enable_api_tokens -%}
     "apiTokens": "Tokens API",
-    {% endif -%}
     "logout": "Cerrar sesión"
   },
   "home": {
@@ -35,7 +33,6 @@
     "priorityHigh": "Alta",
     "dueDate": "Fecha de vencimiento"
   },
-  {% if enable_api_tokens -%}
   "apiTokens": {
     "title": "Tokens API",
     "createToken": {
@@ -80,7 +77,6 @@
       "nameMissing": "Por favor proporciona un nombre para el token"
     }
   },
-  {% endif -%}
   "profile": {
     "roles": "Roles"
   },

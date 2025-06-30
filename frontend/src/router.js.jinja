@@ -9,9 +9,7 @@ import MainLayout from './layouts/MainLayout.vue';
 const Home = () => import('./views/Home.vue');
 const NotFound = () => import('./views/NotFound.vue');
 const AuthCallback = () => import('./views/AuthCallback.vue');
-{% if enable_api_tokens -%}
 const ApiTokens = () => import('./views/ApiTokens.vue');
-{% endif %}
 
 // Define routes
 const routes = [
@@ -31,13 +29,11 @@ const routes = [
         name: 'home',
         component: Home
       },
-      {% if enable_api_tokens -%}
       {
         path: 'tokens',
         name: 'api-tokens',
         component: ApiTokens
-      },
-      {% endif -%}
+      }
     ]
   },
   {

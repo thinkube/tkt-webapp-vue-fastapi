@@ -4,9 +4,7 @@
   },
   "nav": {
     "home": "Home",
-    {% if enable_api_tokens -%}
     "apiTokens": "API Tokens",
-    {% endif -%}
     "logout": "Logout"
   },
   "home": {
@@ -35,7 +33,6 @@
     "priorityHigh": "High",
     "dueDate": "Due Date"
   },
-  {% if enable_api_tokens -%}
   "apiTokens": {
     "title": "API Tokens",
     "createToken": {
@@ -80,7 +77,6 @@
       "nameMissing": "Please provide a name for the token"
     }
   },
-  {% endif -%}
   "profile": {
     "roles": "Roles"
   },

@@ -6,12 +6,8 @@
 
 - **Frontend**: Vue.js {{ vue_version }} with {{ ui_framework }}
 - **Backend**: FastAPI with Python {{ python_version }}
-{% if use_postgresql %}
 - **Database**: PostgreSQL
-{% endif %}
-{% if auth_provider != "none" %}
-- **Authentication**: {{ auth_provider | title }}
-{% endif %}
+- **Authentication**: Keycloak
 
 ## Development
 
@@ -37,8 +33,6 @@ This application is deployed on Thinkube platform.
 
 - Frontend: https://{{ project_name }}.{{ domain_name }}
 - API: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}
-{% if enable_api_docs %}
 - API Docs: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}/docs
-{% endif %}
 
 ## 🤖 Generated with [Thinkube](https://github.com/thinkube/thinkube)

@@ -4,21 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.router import api_router
-{% if use_postgresql -%}
 from app.db.session import Base, get_engine
-{% endif -%}
-{% if enable_api_tokens -%}
 # Import models to ensure they're registered with Base
 from app.core.api_tokens import APIToken
-{% endif %}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Create database tables
-    {% if use_postgresql -%}
     Base.metadata.create_all(bind=get_engine())
-    {% endif -%}
     
     yield
     # Shutdown: Clean up resources if needed

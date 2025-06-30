@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     # Frontend URL for redirects
     FRONTEND_URL: str
     
-    {% if use_postgresql -%}
     # PostgreSQL settings - all from environment
     POSTGRES_HOST: str = "postgresql-official.postgres.svc.cluster.local"
     POSTGRES_PORT: int = 5432
@@ -45,12 +44,6 @@ class Settings(BaseSettings):
         port = values.get("POSTGRES_PORT")
         db = values.get("POSTGRES_DB")
         return f"postgresql://{user}:{password}@{host}:{port}/{db}"
-    {% endif %}
-    
-    {% if enable_cicd_monitoring -%}
-    # CI/CD monitoring database
-    CICD_DB_NAME: str = "cicd_monitoring"
-    {% endif %}
 
     class Config:
         case_sensitive = True
