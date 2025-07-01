@@ -11,12 +11,13 @@ spec:
       build: ./backend
       port: 8000
       size: medium
-      health: /api/v1/health
+      health: /health
       
     - name: frontend
       build: ./frontend
       port: 80
       size: small
+      health: /health
 
   # Routing configuration
   routes:
