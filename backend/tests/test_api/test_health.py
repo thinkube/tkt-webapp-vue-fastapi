@@ -18,7 +18,9 @@ def test_health_endpoint(client: TestClient):
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "ok"
+    assert data["status"] == "healthy"
+    assert data["component"] == "backend"
+    assert "service" in data
 
 def test_cicd_health_endpoint(client: TestClient):
     """Test the CI/CD health check endpoint if monitoring is enabled."""
