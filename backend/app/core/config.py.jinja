@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # API settings
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "{{ project_title }}"
+    PROJECT_NAME: str = "{{ project_title | default(project_name | title | replace('-', ' ')) }}"
     
     # CORS settings
     BACKEND_CORS_ORIGINS: List[str] = []
