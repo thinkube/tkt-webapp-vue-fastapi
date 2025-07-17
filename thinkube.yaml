@@ -22,7 +22,7 @@ spec:
       test:
         enabled: true
         image: "node-base:18-alpine"
-        command: "npm test"
+        command: "./run_tests.sh"
 
   # Routing configuration
   routes:
