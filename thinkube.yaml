@@ -9,12 +9,18 @@ spec:
       port: 8000
       size: medium
       health: /health
+      test:
+        enabled: true
+        image: "python-base:3.11-slim"
       
     - name: frontend
       build: ./frontend
       port: 80
       size: small
       health: /health
+      test:
+        enabled: true
+        image: "node-base:18-alpine"
 
   # Routing configuration
   routes:
