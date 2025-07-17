@@ -12,6 +12,7 @@ spec:
       test:
         enabled: true
         image: "python-base:3.11-slim"
+        command: "./run_tests.sh"
       
     - name: frontend
       build: ./frontend
@@ -21,6 +22,7 @@ spec:
       test:
         enabled: true
         image: "node-base:18-alpine"
+        command: "npm test"
 
   # Routing configuration
   routes:
