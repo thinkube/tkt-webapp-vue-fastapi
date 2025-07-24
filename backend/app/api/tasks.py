@@ -59,7 +59,7 @@ async def list_tasks(
     List all tasks for the current user.
     Requires authentication.
     """
-    tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user["sub"]).all()
+    tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user.sub).all()
     return tasks
 
 
@@ -75,7 +75,7 @@ async def create_task(
     Requires authentication.
     """
     db_task = TaskModel(
-        user_id=current_user["sub"],
+        user_id=current_user.sub,
         title=task.title,
         description=task.description,
         status=task.status,
@@ -100,7 +100,7 @@ async def get_task(
     """
     task = db.query(TaskModel).filter(
         TaskModel.id == task_id,
-        TaskModel.user_id == current_user["sub"]
+        TaskModel.user_id == current_user.sub
     ).first()
     
     if not task:
@@ -122,7 +122,7 @@ async def update_task(
     """
     task = db.query(TaskModel).filter(
         TaskModel.id == task_id,
-        TaskModel.user_id == current_user["sub"]
+        TaskModel.user_id == current_user.sub
     ).first()
     
     if not task:
@@ -157,7 +157,7 @@ async def delete_task(
     """
     task = db.query(TaskModel).filter(
         TaskModel.id == task_id,
-        TaskModel.user_id == current_user["sub"]
+        TaskModel.user_id == current_user.sub
     ).first()
     
     if not task:
