@@ -27,6 +27,48 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+## Database Migrations
+
+This application uses Alembic for database migrations. Migrations run automatically when the application starts.
+
+### Automatic Migration Generation
+
+When you commit changes to model files in code-server, a git hook automatically:
+1. Detects the model changes
+2. Generates a migration file
+3. Adds it to your commit
+
+This requires database access from code-server. If auto-generation doesn't work, see manual migration below.
+
+### Manual Migration
+
+To create migrations manually:
+
+```bash
+cd backend
+# Generate migration based on model changes
+alembic revision --autogenerate -m "describe your changes"
+
+# Or create empty migration
+alembic revision -m "manual migration"
+```
+
+### Viewing Migration History
+
+```bash
+# In code-server terminal or pod
+cd backend
+alembic history --verbose
+alembic current
+```
+
+### Important Notes
+
+- Migrations are applied automatically on pod startup
+- Always commit migration files to your repository
+- Review auto-generated migrations before deploying
+- The initial migration (001_initial_schema.py) is included in the template
+
 ## Deployment
 
 This application is deployed on Thinkube platform.

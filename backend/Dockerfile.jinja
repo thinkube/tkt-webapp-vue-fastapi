@@ -21,6 +21,14 @@ RUN pip install --no-cache-dir ansible
 # Copy application code
 COPY app /app/app
 
+# Copy Alembic configuration and migrations
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
+
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -29,5 +37,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Use startup script to run migrations and start app
+CMD ["/app/start.sh"]

@@ -4,15 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.router import api_router
-from app.db.session import Base, get_engine
 # Import models to ensure they're registered with Base
 from app.core.api_tokens import APIToken
+from app.models.task import Task
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create database tables
-    Base.metadata.create_all(bind=get_engine())
+    # Startup: Database tables are now managed by Alembic migrations
+    # which run in start.sh before the app starts
     
     yield
     # Shutdown: Clean up resources if needed

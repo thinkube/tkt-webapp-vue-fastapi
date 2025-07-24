@@ -1,0 +1,102 @@
+#!/bin/bash
+# Pre-commit hook to auto-generate Alembic migrations when models change
+
+set -e
+
+# Find directories containing alembic.ini to identify containers with migrations
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+MIGRATION_NEEDED=false
+CONTAINER_DIR=""
+
+# Check each container directory for model changes
+for alembic_ini in $(find "$REPO_ROOT" -name "alembic.ini" -type f 2>/dev/null); do
+    CONTAINER_DIR=$(dirname "$alembic_ini")
+    CONTAINER_NAME=$(basename "$CONTAINER_DIR")
+    
+    # Check if this container has model changes
+    if git diff --cached --name-only | grep -E "${CONTAINER_NAME}/(app/models/.*\.py|app/core/api_tokens\.py)" > /dev/null; then
+        MIGRATION_NEEDED=true
+        break
+    fi
+done
+
+if [ "$MIGRATION_NEEDED" = false ]; then
+    exit 0
+fi
+
+echo "🔍 Model changes detected in $CONTAINER_NAME, checking for migrations..."
+
+# Change to the container directory
+cd "$CONTAINER_DIR" 2>/dev/null || {
+    echo "⚠️  Could not access $CONTAINER_DIR"
+    exit 0
+}
+
+# Check if we have alembic installed
+if ! command -v alembic >/dev/null 2>&1; then
+    echo "⚠️  Alembic not installed. To enable auto-migrations:"
+    echo "   pip install alembic"
+    exit 0
+fi
+
+# Database connection settings for code-server environment
+export POSTGRES_HOST="${POSTGRES_HOST:-postgresql-official.postgres.svc.cluster.local}"
+export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+export POSTGRES_USER="${POSTGRES_USER:-tkadmin}"
+
+# Try to determine database name from project directory
+PROJECT_NAME=$(basename $(git rev-parse --show-toplevel))
+export POSTGRES_DB="${POSTGRES_DB:-${PROJECT_NAME//-/_}}"
+
+# Check for database password
+if [ -f "/var/run/secrets/postgresql/postgres-password" ]; then
+    export POSTGRES_PASSWORD=$(cat /var/run/secrets/postgresql/postgres-password)
+elif [ -z "$POSTGRES_PASSWORD" ]; then
+    echo "⚠️  Database password not found."
+    echo "   To enable auto-migrations, set POSTGRES_PASSWORD environment variable"
+    echo "   or ensure PostgreSQL secret is mounted at /var/run/secrets/postgresql/"
+    exit 0
+fi
+
+# Test database connection
+if ! alembic current >/dev/null 2>&1; then
+    echo "⚠️  Cannot connect to database. Auto-migration skipped."
+    echo "   Database: ${POSTGRES_DB} on ${POSTGRES_HOST}:${POSTGRES_PORT}"
+    exit 0
+fi
+
+# Ensure we're up to date with existing migrations
+alembic upgrade head >/dev/null 2>&1
+
+# Check if models match database schema
+if alembic check >/dev/null 2>&1; then
+    echo "✅ Database schema matches models - no migration needed"
+    exit 0
+fi
+
+# Generate migration
+echo "📝 Generating migration for model changes..."
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BRANCH=$(git branch --show-current | sed 's/[^a-zA-Z0-9]/_/g')
+MESSAGE="auto_${BRANCH}_${TIMESTAMP}"
+
+if alembic revision --autogenerate -m "$MESSAGE" 2>/dev/null; then
+    # Find the generated migration file
+    MIGRATION_FILE=$(find alembic/versions -name "*${MESSAGE}.py" -type f 2>/dev/null | head -1)
+    
+    if [ -n "$MIGRATION_FILE" ]; then
+        # Add the migration to the commit
+        git add "$MIGRATION_FILE"
+        echo "✅ Generated and staged migration: $(basename $MIGRATION_FILE)"
+        echo ""
+        echo "   Please review the migration before pushing!"
+        echo "   The migration will be applied automatically on deployment."
+    else
+        echo "⚠️  Migration was generated but file not found"
+    fi
+else
+    echo "❌ Failed to generate migration"
+    echo "   You may need to create it manually with:"
+    echo "   cd backend && alembic revision --autogenerate -m 'your description'"
+    exit 1
+fi

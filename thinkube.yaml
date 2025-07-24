@@ -13,6 +13,9 @@ spec:
         enabled: true
         image: "python-base:3.11-slim"
         command: "./run_tests.sh"
+      migrations:
+        tool: alembic
+        auto: true
       
     - name: frontend
       build: ./frontend
