@@ -72,8 +72,19 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    # Override the sqlalchemy.url with environment variables
-    configuration = config.get_section(config.config_ini_section)
+    # Set lowercase environment variables for configparser interpolation
+    section_defaults = {
+        'postgres_user': os.getenv('POSTGRES_USER', 'tkadmin'),
+        'postgres_password': os.getenv('POSTGRES_PASSWORD', ''),
+        'postgres_host': os.getenv('POSTGRES_HOST', 'postgresql-official.postgres.svc.cluster.local'),
+        'postgres_port': os.getenv('POSTGRES_PORT', '5432'),
+        'postgres_db': os.getenv('POSTGRES_DB', 'app_db')
+    }
+    
+    # Get configuration with defaults for interpolation
+    configuration = config.get_section(config.config_ini_section, defaults=section_defaults)
+    
+    # Override with constructed URL to ensure consistency
     configuration['sqlalchemy.url'] = get_database_url()
     
     connectable = engine_from_config(
