@@ -37,4 +37,3 @@ spec:
   # Services this application needs
   services:
     - database     # PostgreSQL for data persistence
-    - cache        # For session storage and caching
