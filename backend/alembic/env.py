@@ -36,7 +36,7 @@ def get_database_url():
     password = os.getenv('POSTGRES_PASSWORD', '')
     host = os.getenv('POSTGRES_HOST', 'postgresql-official.postgres.svc.cluster.local')
     port = os.getenv('POSTGRES_PORT', '5432')
-    database = os.getenv('POSTGRES_DB', 'app_db')
+    database = os.getenv('POSTGRES_DATABASE', 'app_db')
     
     return f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
