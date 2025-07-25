@@ -82,8 +82,8 @@ version_path_separator = os  # Use os.pathsep.
 # are written from script.py.mako
 # output_encoding = utf-8
 
-# The SQL URL will be constructed from environment variables
-sqlalchemy.url = postgresql://%(postgres_user)s:%(postgres_password)s@%(postgres_host)s:%(postgres_port)s/%(postgres_db)s
+# The SQL URL will be set dynamically in env.py from environment variables
+sqlalchemy.url = driver://user:pass@localhost/dbname
 
 
 [post_write_hooks]
