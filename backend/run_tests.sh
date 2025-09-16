@@ -21,7 +21,7 @@ echo "Database URL configured for user ${DATABASE_USER} at host: ${DATABASE_HOST
 
 # Install dependencies if not already installed
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip install --break-system-packages -r requirements.txt
 
 # Run tests with coverage
 pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=html
