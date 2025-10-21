@@ -1,0 +1,39 @@
+apiVersion: thinkube.io/v1
+kind: ThinkubeDeployment
+
+spec:
+  # Container definitions
+  containers:
+    - name: backend
+      build: ./backend
+      port: 8000
+      size: medium
+      health: /health
+      test:
+        enabled: true
+        image: "python-base:3.12-slim"
+        command: "./run_tests.sh"
+      migrations:
+        tool: alembic
+        auto: true
+      
+    - name: frontend
+      build: ./frontend
+      port: 80
+      size: small
+      health: /health
+      test:
+        enabled: true
+        image: "node-base:18-alpine"
+        command: "./run_tests.sh"
+
+  # Routing configuration
+  routes:
+    - path: /api
+      to: backend
+    - path: /
+      to: frontend
+
+  # Services this application needs
+  services:
+    - database     # PostgreSQL for data persistence

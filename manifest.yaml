@@ -1,0 +1,11 @@
+apiVersion: thinkube.io/v1
+kind: TemplateManifest
+metadata:
+  name: tkt-webapp-vue-fastapi
+  title: Vue.js + FastAPI Web Application
+  description: Full-stack web application with Vue.js frontend and FastAPI backend, PostgreSQL database, and API documentation
+  version: 1.0.0
+  author: Thinkube Team
+  tags: ["webapp", "vue", "fastapi", "fullstack", "database"]
+
+parameters: []  # No parameters - this template includes everything!

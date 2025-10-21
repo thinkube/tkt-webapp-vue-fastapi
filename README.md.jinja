@@ -1,0 +1,80 @@
+# {{ project_title | default(project_name) }}
+
+{{ project_description }}
+
+## Technology Stack
+
+- **Frontend**: Vue.js {{ vue_version }} with {{ ui_framework }}
+- **Backend**: FastAPI with Python {{ python_version }}
+- **Database**: PostgreSQL
+- **Authentication**: Keycloak
+
+## Development
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+## Database Migrations
+
+This application uses Alembic for database migrations. Migrations run automatically when the application starts.
+
+### Automatic Migration Generation
+
+When you commit changes to model files in code-server, a git hook automatically:
+1. Detects the model changes
+2. Generates a migration file
+3. Adds it to your commit
+
+This requires database access from code-server. If auto-generation doesn't work, see manual migration below.
+
+### Manual Migration
+
+To create migrations manually:
+
+```bash
+cd backend
+# Generate migration based on model changes
+alembic revision --autogenerate -m "describe your changes"
+
+# Or create empty migration
+alembic revision -m "manual migration"
+```
+
+### Viewing Migration History
+
+```bash
+# In code-server terminal or pod
+cd backend
+alembic history --verbose
+alembic current
+```
+
+### Important Notes
+
+- Migrations are applied automatically on pod startup
+- Always commit migration files to your repository
+- Review auto-generated migrations before deploying
+- The initial migration (001_initial_schema.py) is included in the template
+
+## Deployment
+
+This application is deployed on Thinkube platform.
+
+- Frontend: https://{{ project_name }}.{{ domain_name }}
+- API: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}
+- API Docs: https://{{ project_name }}.{{ domain_name }}{{ api_prefix }}/docs
+
+## 🤖 Generated with [Thinkube](https://github.com/thinkube/thinkube)
