@@ -1,24 +1,2 @@
-fastapi==0.109.2
-uvicorn==0.27.1
-python-jose[cryptography]==3.3.0
-httpx==0.26.0
-python-multipart==0.0.7
-pydantic==2.5.3
-pydantic-settings==2.1.0
-cryptography==42.0.2
-kubernetes==31.0.0
-websockets==12.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-alembic==1.13.1
-
-# Test dependencies
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-faker==20.1.0
-
-# Code quality
-flake8==6.1.0
-black==23.12.0
-isort==5.13.0
+# All common dependencies are already installed in the python-base:3.12-slim image
+# Only add application-specific packages here that are not in the base image
