@@ -1,5 +1,5 @@
 # Build stage - use optimized base from library
-FROM {{ container_registry }}/library/node-base:18-alpine as build-stage
+FROM {{ container_registry }}/library/node:24-alpine as build-stage
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
