@@ -24,7 +24,7 @@ spec:
       health: /health
       test:
         enabled: true
-        image: "node-base:18-alpine"
+        image: "node:24-alpine"
         command: "./run_tests.sh"
 
   # Routing configuration
