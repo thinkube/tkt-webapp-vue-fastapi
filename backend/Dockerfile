@@ -1,5 +1,6 @@
 # Use optimized base image with common dependencies from library
-FROM {{ container_registry }}/library/python-base:3.12-slim
+ARG CONTAINER_REGISTRY
+FROM ${CONTAINER_REGISTRY}/library/python-base:3.12-slim
 
 WORKDIR /app
 

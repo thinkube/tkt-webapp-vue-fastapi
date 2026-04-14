@@ -4,25 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.router import api_router
-from app.db.session import Base, get_engine
-from app.db.cicd_session import get_cicd_engine
 # Import models to ensure they're registered with Base
 from app.core.api_tokens import APIToken
-from app.models.cicd import Pipeline, PipelineEvent, LogReference, PipelineMetric
+from app.models.task import Task
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create database tables
-    # Create tables in main database (for auth/tokens)
-    Base.metadata.create_all(bind=get_engine())
-    
-    # Create tables in CI/CD monitoring database
-    # Note: The tables already exist from our PostgreSQL setup,
-    # but this ensures they're created if missing
-    from app.models.cicd import Base as CICDBase
-    CICDBase.metadata.create_all(bind=get_cicd_engine())
-    
+    # Startup: Database tables are now managed by Alembic migrations
+    # which run in start.sh before the app starts
+
     yield
     # Shutdown: Clean up resources if needed
 
@@ -52,7 +43,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to the K8s Dashboard Hub API",
+        "message": f"Welcome to {settings.PROJECT_NAME} API",
         "docs_url": f"{settings.API_V1_STR}/docs",
         "redoc_url": f"{settings.API_V1_STR}/redoc",
         "openapi_url": f"{settings.API_V1_STR}/openapi.json",
@@ -62,7 +53,11 @@ async def root():
 # Health check endpoint
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "component": "backend"
+    }
 
 # Export the app for uvicorn
 __all__ = ["app"]

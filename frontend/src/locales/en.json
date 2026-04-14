@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "{{ project_title }}"
+    "title": "Web Application"
   },
   "nav": {
     "home": "Home",
@@ -8,7 +8,7 @@
     "logout": "Logout"
   },
   "home": {
-    "title": "Welcome to {{ project_title }}",
+    "title": "Welcome",
     "subtitle": "Manage your tasks efficiently",
     "noTasks": "No tasks found",
     "createFirst": "Create your first task",
@@ -81,7 +81,7 @@
     "roles": "Roles"
   },
   "auth": {
-    "loginTitle": "{{ project_title }}",
+    "loginTitle": "Sign In",
     "loginMessage": "Please sign in to access the application",
     "loginButton": "Sign in with Keycloak",
     "loggingIn": "Completing authentication...",

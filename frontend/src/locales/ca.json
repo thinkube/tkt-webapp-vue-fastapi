@@ -1,31 +1,31 @@
 {
   "app": {
-    "title": "{{ project_title }}"
+    "title": "Aplicacio Web"
   },
   "nav": {
     "home": "Inici",
     "apiTokens": "Tokens API",
-    "logout": "Tancar sessió"
+    "logout": "Tancar sessio"
   },
   "home": {
-    "title": "Benvingut a {{ project_title }}",
+    "title": "Benvingut",
     "subtitle": "Gestiona les teves tasques eficientment",
     "noTasks": "No s'han trobat tasques",
     "createFirst": "Crea la teva primera tasca",
     "createTask": "Crear Tasca",
     "editTask": "Editar Tasca",
-    "confirmDelete": "Estàs segur que vols eliminar aquesta tasca?",
+    "confirmDelete": "Estas segur que vols eliminar aquesta tasca?",
     "taskTitle": "Nova Tasca",
-    "taskDescription": "Descripció de la tasca a completar"
+    "taskDescription": "Descripcio de la tasca a completar"
   },
   "task": {
-    "title": "Títol",
-    "titlePlaceholder": "Introdueix el títol de la tasca",
-    "description": "Descripció",
-    "descriptionPlaceholder": "Introdueix la descripció de la tasca (opcional)",
+    "title": "Titol",
+    "titlePlaceholder": "Introdueix el titol de la tasca",
+    "description": "Descripcio",
+    "descriptionPlaceholder": "Introdueix la descripcio de la tasca (opcional)",
     "status": "Estat",
     "statusTodo": "Per fer",
-    "statusInProgress": "En progrés",
+    "statusInProgress": "En progres",
     "statusDone": "Completada",
     "priority": "Prioritat",
     "priorityLow": "Baixa",
@@ -40,12 +40,12 @@
       "nameLabel": "Nom del token",
       "namePlaceholder": "El meu token API",
       "expiresLabel": "Expira en (dies)",
-      "expiresPlaceholder": "Deixar buit per sense expiració",
+      "expiresPlaceholder": "Deixar buit per sense expiracio",
       "createButton": "Crear token"
     },
     "tokenCreated": {
-      "title": "Token creat amb èxit!",
-      "message": "Copia aquest token ara. No podràs veure'l de nou.",
+      "title": "Token creat amb exit!",
+      "message": "Copia aquest token ara. No podras veure'l de nou.",
       "copyButton": "Copiar al porta-retalls",
       "copied": "Token copiat al porta-retalls!"
     },
@@ -56,19 +56,19 @@
         "name": "Nom",
         "created": "Creat",
         "expires": "Expira",
-        "lastUsed": "Últim ús",
+        "lastUsed": "Ultim us",
         "actions": "Accions",
         "never": "Mai",
         "revoke": "Revocar",
         "revoked": "Revocat"
       },
-      "confirmRevoke": "Estàs segur que vols revocar aquest token?"
+      "confirmRevoke": "Estas segur que vols revocar aquest token?"
     },
     "usage": {
       "title": "Com utilitzar els tokens API",
       "cli": {
         "title": "CLI / curl",
-        "description": "Inclou el token a la capçalera Authorization:"
+        "description": "Inclou el token a la capcalera Authorization:"
       }
     },
     "errors": {
@@ -81,26 +81,26 @@
     "roles": "Rols"
   },
   "auth": {
-    "loginTitle": "{{ project_title }}",
-    "loginMessage": "Si us plau inicia sessió per accedir a l'aplicació",
-    "loginButton": "Iniciar sessió amb Keycloak",
-    "loggingIn": "Completant autenticació...",
-    "loginSuccess": "Autenticació exitosa. Redirigint...",
-    "loginFailed": "Error d'autenticació",
-    "noCode": "No s'ha rebut codi d'autorització",
+    "loginTitle": "Iniciar Sessio",
+    "loginMessage": "Si us plau inicia sessio per accedir a l'aplicacio",
+    "loginButton": "Iniciar sessio amb Keycloak",
+    "loggingIn": "Completant autenticacio...",
+    "loginSuccess": "Autenticacio exitosa. Redirigint...",
+    "loginFailed": "Error d'autenticacio",
+    "noCode": "No s'ha rebut codi d'autoritzacio",
     "redirecting": "Redirigint...",
-    "configError": "Error de configuració d'autenticació. Si us plau revisa la consola per més detalls."
+    "configError": "Error de configuracio d'autenticacio. Si us plau revisa la consola per mes detalls."
   },
   "errors": {
     "notFound": {
       "title": "404",
-      "heading": "Pàgina no trobada",
-      "message": "La pàgina que cerques no existeix o ha estat moguda.",
+      "heading": "Pagina no trobada",
+      "message": "La pagina que cerques no existeix o ha estat moguda.",
       "backButton": "Tornar a l'inici"
     },
     "loadingApp": {
-      "title": "Error al carregar l'aplicació",
-      "message": "No s'ha pogut carregar la informació de l'usuari.",
+      "title": "Error al carregar l'aplicacio",
+      "message": "No s'ha pogut carregar la informacio de l'usuari.",
       "reload": "Recarregar"
     },
     "general": {
@@ -111,14 +111,14 @@
     "open": "Obrir",
     "close": "Tancar",
     "save": "Desar",
-    "cancel": "Cancel·lar",
+    "cancel": "Cancel-lar",
     "delete": "Eliminar",
     "edit": "Editar",
     "create": "Crear",
     "update": "Actualitzar",
     "back": "Enrere",
-    "next": "Següent",
-    "yes": "Sí",
+    "next": "Seguent",
+    "yes": "Si",
     "no": "No"
   }
 }

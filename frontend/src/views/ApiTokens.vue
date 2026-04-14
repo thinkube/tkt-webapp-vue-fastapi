@@ -1,43 +1,43 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">{{ "{{" }} t('apiTokens.title') {{ "}}" }}</h1>
-    
+    <h1 class="text-3xl font-bold mb-6">{{ t('apiTokens.title') }}</h1>
+
     <!-- Create Token Form -->
     <div class="card bg-base-200 shadow-xl mb-6">
       <div class="card-body">
-        <h2 class="card-title">{{ "{{" }} t('apiTokens.createToken.title') {{ "}}" }}</h2>
+        <h2 class="card-title">{{ t('apiTokens.createToken.title') }}</h2>
         <div class="form-control">
           <label class="label" for="token-name">
-            <span class="label-text">{{ "{{" }} t('apiTokens.createToken.nameLabel') {{ "}}" }}</span>
+            <span class="label-text">{{ t('apiTokens.createToken.nameLabel') }}</span>
           </label>
-          <input 
+          <input
             id="token-name"
-            v-model="newToken.name" 
-            type="text" 
-            :placeholder="t('apiTokens.createToken.namePlaceholder')" 
+            v-model="newToken.name"
+            type="text"
+            :placeholder="t('apiTokens.createToken.namePlaceholder')"
             class="input input-bordered"
           />
         </div>
         <div class="form-control">
           <label class="label" for="token-expires">
-            <span class="label-text">{{ "{{" }} t('apiTokens.createToken.expiresLabel') {{ "}}" }}</span>
+            <span class="label-text">{{ t('apiTokens.createToken.expiresLabel') }}</span>
           </label>
-          <input 
+          <input
             id="token-expires"
-            v-model.number="newToken.expires_in_days" 
-            type="number" 
-            :placeholder="t('apiTokens.createToken.expiresPlaceholder')" 
+            v-model.number="newToken.expires_in_days"
+            type="number"
+            :placeholder="t('apiTokens.createToken.expiresPlaceholder')"
             class="input input-bordered"
           />
         </div>
         <div class="card-actions justify-end mt-4">
-          <button 
-            @click="createToken" 
+          <button
+            @click="createToken"
             class="btn btn-primary"
             :disabled="!newToken.name || creating"
           >
             <span v-if="creating" class="loading loading-spinner loading-sm"></span>
-            {{ "{{" }} t('apiTokens.createToken.createButton') {{ "}}" }}
+            {{ t('apiTokens.createToken.createButton') }}
           </button>
         </div>
       </div>
@@ -50,13 +50,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
-          <h3 class="font-bold">{{ "{{" }} t('apiTokens.tokenCreated.title') {{ "}}" }}</h3>
-          <p class="text-sm">{{ "{{" }} t('apiTokens.tokenCreated.message') {{ "}}" }}</p>
+          <h3 class="font-bold">{{ t('apiTokens.tokenCreated.title') }}</h3>
+          <p class="text-sm">{{ t('apiTokens.tokenCreated.message') }}</p>
           <div class="mockup-code mt-2">
-            <pre><code>{{ "{{" }} createdToken.token {{ "}}" }}</code></pre>
+            <pre><code>{{ createdToken.token }}</code></pre>
           </div>
           <button @click="copyToken" class="btn btn-sm btn-ghost mt-2">
-            {{ "{{" }} copied ? t('apiTokens.tokenCreated.copied') : t('apiTokens.tokenCreated.copyButton') {{ "}}" }}
+            {{ copied ? t('apiTokens.tokenCreated.copied') : t('apiTokens.tokenCreated.copyButton') }}
           </button>
         </div>
       </div>
@@ -65,37 +65,37 @@
     <!-- Token List -->
     <div class="card bg-base-200 shadow-xl">
       <div class="card-body">
-        <h2 class="card-title">{{ "{{" }} t('apiTokens.tokenList.title') {{ "}}" }}</h2>
+        <h2 class="card-title">{{ t('apiTokens.tokenList.title') }}</h2>
         <div v-if="loading" class="text-center py-4">
           <span class="loading loading-spinner loading-lg"></span>
         </div>
         <div v-else-if="tokens.length === 0" class="text-center py-4">
-          <p>{{ "{{" }} t('apiTokens.tokenList.noTokens') {{ "}}" }}</p>
+          <p>{{ t('apiTokens.tokenList.noTokens') }}</p>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="table">
             <thead>
               <tr>
-                <th>{{ "{{" }} t('apiTokens.tokenList.table.name') {{ "}}" }}</th>
-                <th>{{ "{{" }} t('apiTokens.tokenList.table.created') {{ "}}" }}</th>
-                <th>{{ "{{" }} t('apiTokens.tokenList.table.expires') {{ "}}" }}</th>
-                <th>{{ "{{" }} t('apiTokens.tokenList.table.lastUsed') {{ "}}" }}</th>
-                <th>{{ "{{" }} t('apiTokens.tokenList.table.actions') {{ "}}" }}</th>
+                <th>{{ t('apiTokens.tokenList.table.name') }}</th>
+                <th>{{ t('apiTokens.tokenList.table.created') }}</th>
+                <th>{{ t('apiTokens.tokenList.table.expires') }}</th>
+                <th>{{ t('apiTokens.tokenList.table.lastUsed') }}</th>
+                <th>{{ t('apiTokens.tokenList.table.actions') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="token in tokens" :key="token.id">
-                <td>{{ "{{" }} token.name {{ "}}" }}</td>
-                <td>{{ "{{" }} formatDate(token.created_at) {{ "}}" }}</td>
-                <td>{{ "{{" }} token.expires_at ? formatDate(token.expires_at) : t('apiTokens.tokenList.table.never') {{ "}}" }}</td>
-                <td>{{ "{{" }} token.last_used ? formatDate(token.last_used) : t('apiTokens.tokenList.table.never') {{ "}}" }}</td>
+                <td>{{ token.name }}</td>
+                <td>{{ formatDate(token.created_at) }}</td>
+                <td>{{ token.expires_at ? formatDate(token.expires_at) : t('apiTokens.tokenList.table.never') }}</td>
+                <td>{{ token.last_used ? formatDate(token.last_used) : t('apiTokens.tokenList.table.never') }}</td>
                 <td>
-                  <button 
-                    @click="revokeToken(token.id)" 
+                  <button
+                    @click="revokeToken(token.id)"
                     class="btn btn-sm btn-error"
                     :disabled="!token.is_active"
                   >
-                    {{ "{{" }} token.is_active ? t('apiTokens.tokenList.table.revoke') : t('apiTokens.tokenList.table.revoked') {{ "}}" }}
+                    {{ token.is_active ? t('apiTokens.tokenList.table.revoke') : t('apiTokens.tokenList.table.revoked') }}
                   </button>
                 </td>
               </tr>
@@ -108,13 +108,13 @@
     <!-- Usage Instructions -->
     <div class="card bg-base-200 shadow-xl mt-6">
       <div class="card-body">
-        <h2 class="card-title">{{ "{{" }} t('apiTokens.usage.title') {{ "}}" }}</h2>
+        <h2 class="card-title">{{ t('apiTokens.usage.title') }}</h2>
         <div class="space-y-4">
           <div>
-            <h3 class="font-semibold">{{ "{{" }} t('apiTokens.usage.cli.title') {{ "}}" }}</h3>
-            <p class="text-sm text-base-content/70 mb-2">{{ "{{" }} t('apiTokens.usage.cli.description') {{ "}}" }}</p>
+            <h3 class="font-semibold">{{ t('apiTokens.usage.cli.title') }}</h3>
+            <p class="text-sm text-base-content/70 mb-2">{{ t('apiTokens.usage.cli.description') }}</p>
             <div class="mockup-code">
-              <pre><code>curl -H "Authorization: Bearer YOUR_TOKEN" https://{{ project_name }}.{{ domain_name }}/api/v1/endpoint</code></pre>
+              <pre><code>curl -H "Authorization: Bearer YOUR_TOKEN" {{ apiBaseUrl }}/v1/endpoint</code></pre>
             </div>
           </div>
         </div>
@@ -124,11 +124,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 
 const { t } = useI18n()
+
+// Compute API base URL from current window location
+const apiBaseUrl = computed(() => `${window.location.origin}/api`)
 
 // State
 const tokens = ref([])
@@ -173,10 +176,10 @@ const createToken = async () => {
       name: newToken.value.name,
       expires_in_days: newToken.value.expires_in_days || null
     })
-    
+
     createdToken.value = response.data
     newToken.value = { name: '', expires_in_days: null }
-    
+
     // Refresh token list
     await fetchTokens()
   } catch (error) {
@@ -190,7 +193,7 @@ const createToken = async () => {
 // Copy token to clipboard
 const copyToken = async () => {
   if (!createdToken.value) return
-  
+
   try {
     await navigator.clipboard.writeText(createdToken.value.token)
     copied.value = true
@@ -207,7 +210,7 @@ const revokeToken = async (tokenId) => {
   if (!confirm(t('apiTokens.tokenList.confirmRevoke'))) {
     return
   }
-  
+
   try {
     await api.delete(`/api/tokens/${tokenId}`)
     await fetchTokens()

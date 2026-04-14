@@ -9,20 +9,20 @@
           </svg>
         </label>
         <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-          <li><router-link to="/">{% raw %}{{ t('nav.home') }}{% endraw %}</router-link></li>
-          <li><router-link to="/tokens">{% raw %}{{ t('nav.apiTokens') }}{% endraw %}</router-link></li>
+          <li><router-link to="/">{{ t('nav.home') }}</router-link></li>
+          <li><router-link to="/tokens">{{ t('nav.apiTokens') }}</router-link></li>
         </ul>
       </div>
-      <router-link to="/" class="btn btn-ghost normal-case text-xl">{% raw %}{{ t('app.title') }}{% endraw %}</router-link>
+      <router-link to="/" class="btn btn-ghost normal-case text-xl">{{ t('app.title') }}</router-link>
     </div>
-    
+
     <div class="navbar-center hidden lg:flex">
       <ul class="menu menu-horizontal px-1">
-        <li><router-link to="/">{% raw %}{{ t('nav.home') }}{% endraw %}</router-link></li>
-        <li><router-link to="/tokens">{% raw %}{{ t('nav.apiTokens') }}{% endraw %}</router-link></li>
+        <li><router-link to="/">{{ t('nav.home') }}</router-link></li>
+        <li><router-link to="/tokens">{{ t('nav.apiTokens') }}</router-link></li>
       </ul>
     </div>
-    
+
     <div class="navbar-end">
       <label class="swap swap-rotate mr-4">
         <input type="checkbox" v-model="isDarkMode" @change="toggleTheme" />
@@ -35,14 +35,14 @@
           <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
         </svg>
       </label>
-      
+
       <!-- Language selector -->
       <div class="dropdown dropdown-end mr-2">
         <label tabindex="0" class="btn btn-ghost btn-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
           </svg>
-          <span class="ml-1">{% raw %}{{ currentLocale.toUpperCase() }}{% endraw %}</span>
+          <span class="ml-1">{{ currentLocale.toUpperCase() }}</span>
         </label>
         <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
           <li><a @click="changeLocale('en')">English</a></li>
@@ -50,7 +50,7 @@
           <li><a @click="changeLocale('ca')">Català</a></li>
         </ul>
       </div>
-      
+
       <ProfileDropdown :user="user" @logout="handleLogout" />
     </div>
   </div>
@@ -100,7 +100,7 @@ onMounted(() => {
     locale.value = savedLocale
     currentLocale.value = savedLocale
   }
-  
+
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'light'
   isDarkMode.value = savedTheme === 'dark'
