@@ -1,8 +1,12 @@
 apiVersion: thinkube.io/v1
 kind: ThinkubeDeployment
+metadata:
+  name: "{{ project_name }}"
 
 spec:
-  # Container definitions
+  deployment:
+    type: app
+
   containers:
     - name: backend
       build: ./backend
@@ -16,7 +20,7 @@ spec:
       migrations:
         tool: alembic
         auto: true
-      
+
     - name: frontend
       build: ./frontend
       port: 80
@@ -27,13 +31,11 @@ spec:
         image: "node:24-alpine"
         command: "./run_tests.sh"
 
-  # Routing configuration
   routes:
     - path: /api
       to: backend
     - path: /
       to: frontend
 
-  # Services this application needs
   services:
-    - database     # PostgreSQL for data persistence
+    - database
